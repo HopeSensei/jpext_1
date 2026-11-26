@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>旅 Journeys Class Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: a fixed 1600x900 stage scaled to the window, one slide at a time, nav bar below. Single classroom theme. */
+:root {
+  --ink: #1F2A44;
+  --paper: #F7F3EC;
+  --paper-2: #EDE6DA;
+  --card: #FFFDF8;
+  --accent: #B23A26;
+  --accent-soft: #F2B8A6;
+  --muted: #4A5568;
+  --line: #D9CFBF;
+  --good: #2E6B3F;
+  --good-bg: #E3F0E4;
+  --warn-bg: #FBE7E1;
+  --t: #1E5A8C;
+  --e: #A34714;
+  --l: #5B3E8F;
+  --hl: #F6DFA8;
+  --display: 'Zen Maru Gothic', 'Noto Sans JP', 'Hiragino Sans', Arial, sans-serif;
+  --body: 'Noto Sans JP', 'Hiragino Sans', Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: #12192B;
+  color: var(--ink);
+  font-family: var(--body);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#viewport { flex: 1; position: relative; overflow: hidden; }
+#stage {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 1600px; height: 900px;
+  transform-origin: center center;
+}
+.slide {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  gap: 28px;
+  padding: 56px 88px;
+  background: var(--paper);
+  overflow: auto;
+}
+.slide.active { display: flex; }
+.slide.alt { background: var(--paper-2); }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.red { background: var(--accent); color: #FBF6EE; }
+.slide.center { justify-content: center; }
+
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: 84px; line-height: 1.25; }
+h2 { font-size: 54px; line-height: 1.2; }
+h3 { font-size: 32px; line-height: 1.3; }
+p { margin: 0; font-size: 28px; line-height: 1.6; }
+.eyebrow { font-size: 20px; font-weight: 700; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+.dark .eyebrow { color: var(--accent-soft); }
+.red .eyebrow { color: #FBE3D9; }
+.lead { font-size: 34px; line-height: 1.5; }
+.muted { color: var(--muted); }
+.dark .muted { color: #C9D3E3; }
+.red .muted { color: #FBE3D9; }
+.small { font-size: 22px; line-height: 1.5; }
+.big { font-family: var(--display); font-size: 110px; font-weight: 700; line-height: 1.15; }
+
+.row { display: flex; gap: 24px; }
+.grid { display: grid; gap: 20px; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+.card { background: var(--card); border-radius: 12px; padding: 24px 28px; display: flex; flex-direction: column; gap: 10px; }
+.alt .card { background: var(--paper); }
+.dark .card { background: #2C3A5A; }
+.card .note { font-size: 22px; color: var(--muted); line-height: 1.5; }
+.dark .card .note { color: #C9D3E3; }
+.num { font-family: var(--display); font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1; }
+
+.model { background: var(--card); border-left: 10px solid var(--ink); border-radius: 8px; padding: 28px 36px; }
+.model p { font-size: 28px; line-height: 1.85; }
+.t-lab, .e-lab, .l-lab { font-weight: 400; transition: color .2s, background .2s; }
+.show-labels .t-lab { color: var(--t); font-weight: 700; }
+.show-labels .e-lab { color: var(--e); font-weight: 700; }
+.show-labels .l-lab { color: var(--l); font-weight: 700; }
+.tag { display: none; font-size: 18px; font-weight: 700; padding: 2px 8px; border-radius: 4px; color: #fff; margin-right: 6px; vertical-align: middle; }
+.show-labels .tag { display: inline-block; }
+.tag.t { background: var(--t); } .tag.e { background: var(--e); } .tag.l { background: var(--l); }
+.hl { background: var(--hl); }
+
+table { border-collapse: collapse; width: 100%; }
+th { font-size: 20px; text-align: left; padding: 12px 18px; background: var(--ink); color: var(--paper); }
+td { font-size: 24px; line-height: 1.5; padding: 12px 18px; border-bottom: 2px solid var(--line); vertical-align: top; }
+td.jp { font-weight: 700; }
+
+/* Controls */
+button { font-family: var(--body); cursor: pointer; }
+button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 4px solid #E3A33B; outline-offset: 2px; }
+.btn {
+  font-size: 20px; font-weight: 700;
+  padding: 10px 18px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--card); color: var(--ink);
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #8E2D1D; }
+.dark .btn { background: transparent; color: var(--paper); border-color: var(--paper); }
+
+.qa { display: flex; flex-direction: column; gap: 12px; }
+.qa-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 16px; align-items: start; background: var(--card); border-radius: 10px; padding: 14px 20px; }
+.alt .qa-item { background: var(--paper); }
+.qa-item .n { font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--accent); }
+.qa-item .q { font-size: 24px; line-height: 1.55; }
+.qa-item .a { grid-column: 2 / 4; font-size: 24px; line-height: 1.55; color: var(--good); font-weight: 700; display: none; }
+.qa-item.open .a { display: block; }
+.qa-item .tagline { font-size: 18px; color: var(--muted); font-weight: 400; }
+
+/* Flip cards */
+.flip { border: none; padding: 0; background: none; text-align: left; perspective: 1000px; height: 150px; }
+.flip-inner { position: relative; width: 100%; height: 100%; transition: transform .45s; transform-style: preserve-3d; }
+.flip.flipped .flip-inner { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.front { background: var(--card); border: 2px dashed var(--line); }
+.front .w { font-size: 34px; font-weight: 700; color: var(--ink); }
+.front .hint { font-size: 16px; color: var(--muted); }
+.back { background: var(--ink); color: var(--paper); transform: rotateY(180deg); }
+.back .w { font-size: 28px; font-weight: 700; font-family: var(--display); }
+.back .ex { font-size: 16px; line-height: 1.45; color: #DCE3EF; }
+
+/* Match game */
+.match { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.match .col { display: flex; flex-direction: column; gap: 8px; }
+.chip { font-size: 24px; font-weight: 700; padding: 9px 18px; border-radius: 10px; border: 3px solid var(--line); background: var(--card); color: var(--ink); text-align: left; }
+.chip.sel { border-color: var(--accent); background: var(--warn-bg); }
+.chip.done { border-color: var(--good); background: var(--good-bg); color: var(--good); cursor: default; }
+.chip.wrong { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.status { font-size: 24px; font-weight: 700; min-height: 36px; }
+.status.ok { color: var(--good); }
+.status.no { color: var(--accent); }
+
+/* Ordering */
+.pool, .built { display: flex; flex-direction: column; gap: 10px; }
+.sent { font-size: 20px; line-height: 1.45; text-align: left; padding: 9px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.sent.used { opacity: .35; cursor: default; }
+.built .sent { border-color: var(--ink); }
+.built .sent.good { border-color: var(--good); background: var(--good-bg); }
+.built .sent.bad { border-color: var(--accent); background: var(--warn-bg); }
+.job { font-size: 16px; font-weight: 700; color: var(--muted); display: block; }
+
+/* Builder */
+.brow { display: grid; grid-template-columns: 140px 1fr 1fr; gap: 12px; align-items: stretch; }
+.brow .lab { font-weight: 700; font-size: 22px; align-self: center; }
+.opt { font-size: 19px; line-height: 1.45; text-align: left; padding: 10px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.opt.on { border-color: var(--ink); background: #E4EAF4; font-weight: 700; }
+.out { background: var(--card); border-left: 10px solid var(--accent); border-radius: 8px; padding: 18px 24px; font-size: 22px; line-height: 1.75; min-height: 120px; }
+
+/* Ladder */
+.ladder { display: flex; flex-direction: column; gap: 10px; }
+.rung { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 20px; border-radius: 10px; padding: 14px 20px; border: 2px solid var(--line); background: var(--card); text-align: left; color: var(--ink); }
+.rung .lv { font-weight: 700; font-size: 22px; }
+.rung .s { font-size: 26px; visibility: hidden; }
+.rung.on { border-color: var(--ink); }
+.rung.on .s { visibility: visible; }
+
+/* Tabs */
+.tabs { display: flex; gap: 10px; }
+.tab { font-size: 22px; font-weight: 700; padding: 10px 22px; border-radius: 10px 10px 0 0; border: 2px solid var(--ink); border-bottom: none; background: var(--paper-2); color: var(--ink); }
+.tab.on { background: var(--ink); color: var(--paper); }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* Checklist */
+.check { display: flex; flex-direction: column; gap: 10px; }
+.ck { display: flex; gap: 16px; align-items: center; font-size: 24px; text-align: left; padding: 12px 18px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.ck .box { width: 34px; height: 34px; border-radius: 6px; border: 3px solid var(--ink); display: grid; place-items: center; font-weight: 700; flex: none; }
+.ck.on { border-color: var(--good); background: var(--good-bg); }
+.ck.on .box { background: var(--good); border-color: var(--good); color: #fff; }
+
+/* Plan grid */
+.plan { display: grid; grid-template-columns: 260px 1fr; gap: 10px 18px; align-items: center; }
+.plan label { font-size: 22px; font-weight: 700; }
+.plan textarea { font-family: var(--body); font-size: 20px; padding: 8px 12px; border: 2px solid var(--line); border-radius: 8px; background: var(--card); resize: none; height: 52px; }
+
+/* Timer */
+.timer { font-family: var(--display); font-size: 200px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* Stand line */
+.line-bar { flex: 1; height: 8px; background: var(--ink); border-radius: 4px; }
+
+/* Nav bar */
+nav {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: #12192B; color: #DCE3EF;
+  font-size: 15px;
+}
+nav .sp { flex: 1; }
+nav button { background: #2C3A5A; color: #F7F3EC; border: none; border-radius: 8px; padding: 8px 14px; font-size: 15px; font-weight: 700; }
+nav button:hover { background: #3C4D75; }
+nav select { font-family: var(--body); font-size: 15px; padding: 7px 10px; border-radius: 8px; background: #2C3A5A; color: #F7F3EC; border: none; max-width: 360px; }
+#count { font-variant-numeric: tabular-nums; min-width: 64px; text-align: center; }
+@media (max-width: 640px) { nav .hide-sm { display: none; } }
+
+/* Furigana: ruby readings over kanji, hidden unless the slide is switched on */
+ruby { ruby-position: over; }
+rt { font-size: .62em; font-weight: 500; letter-spacing: 0; color: inherit; opacity: .85; text-transform: none; }
+.slide:not(.furi) rt { display: none; }
+.slide.furi p, .slide.furi .q, .slide.furi .a, .slide.furi td, .slide.furi .opt, .slide.furi .sent, .slide.furi .chip, .slide.furi .ck { line-height: 2.3; }
+.slide.furi .model p { line-height: 2.55; }
+.slide.furi .flip { height: 210px; }
+.slide.furi .iy { display: none; }
+.rbtn { position: absolute; top: 16px; right: 22px; z-index: 5; font-size: 15px; font-weight: 700; padding: 6px 14px; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; opacity: .8; }
+.rbtn:hover { opacity: 1; }
+.slide.furi .rbtn { background: var(--accent); border-color: var(--accent); color: #fff; opacity: 1; }
+.red.furi .rbtn { background: #FBF6EE; border-color: #FBF6EE; color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .flip-inner { transition: none; } .chip.wrong { animation: none; } }
+
+/* Journeys additions */
+.j.h1 { display: block; font-family: var(--display); font-size: 84px; font-weight: 700; line-height: 1.25; }
+.j.h3 { display: block; font-family: var(--display); font-size: 32px; font-weight: 700; line-height: 1.3; }
+.j.big { display: inline-block; font-size: 90px; }
+.labelled .tag { display: none; background: var(--ink); color: #fff; font-size: 16px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle; font-family: var(--body); }
+.labelled.show .tag { display: inline-block; }
+.labelled.show .seg { border-radius: 4px; }
+.labelled.show .c1 { background: #E4EAF4; } .labelled.show .c2 { background: #FBE7E1; } .labelled.show .c3 { background: #E3F0E4; }
+.labelled.show .c4 { background: #EFEDFF; } .labelled.show .c5 { background: #F9EEDA; }
+.timer.t-small { font-size: 88px; }
+.panel h3 { font-size: 22px; color: var(--muted); }
+.fact .fj { font-size: 20px; line-height: 1.55; font-weight: 700; }
+
+/* Bigger classroom text */
+.slide { padding: 44px 64px; gap: 22px; }
+h1, .j.h1 { font-size: 92px; }
+h2 { font-size: 62px; }
+h3, .j.h3 { font-size: 38px; }
+p { font-size: 34px; }
+.eyebrow { font-size: 24px; }
+.lead { font-size: 42px; }
+.small { font-size: 29px; }
+.card .note { font-size: 27px; }
+.card { padding: 22px 26px; }
+.model { padding: 24px 32px; }
+.model p { font-size: 34px; }
+th { font-size: 25px; }
+td { font-size: 30px; }
+.qa-item { padding: 12px 18px; }
+.qa-item .q, .qa-item .a { font-size: 31px; }
+.qa-item .n { font-size: 30px; }
+.btn { font-size: 23px; }
+.chip { font-size: 31px; }
+.sent { font-size: 25px; }
+.job { font-size: 19px; }
+.opt { font-size: 24px; }
+.brow .lab { font-size: 25px; }
+.out { font-size: 27px; }
+.ck { font-size: 30px; }
+.rung .lv { font-size: 26px; }
+.rung .s { font-size: 32px; }
+.tab { font-size: 25px; }
+.plan label { font-size: 27px; }
+.plan textarea { font-size: 25px; height: 56px; }
+.flip { height: 170px; }
+.front .w { font-size: 40px; }
+.back .w { font-size: 32px; }
+.back .ex { font-size: 20px; }
+.front .hint { font-size: 18px; }
+.fact .fj { font-size: 27px; }
+.status { font-size: 27px; }
+.rbtn { font-size: 18px; }
+/* dense game slides keep a slightly smaller size so they fit */
+.pool .sent, .built .sent { font-size: 23px; padding: 7px 12px; }
+.pool, .built { gap: 7px; }
+#builder .opt { font-size: 22px; padding: 7px 12px; }
+#ttOpen .chip { font-size: 24px; padding: 7px 14px; }
+#ttType .chip { padding: 7px 14px; }
+
+/* English glosses for vocabulary */
+.en { display: none; font-family: var(--body); font-size: .55em; font-weight: 500; font-style: italic; letter-spacing: 0; text-transform: none; color: var(--muted); line-height: 1.3; margin-top: 4px; }
+.slide.en-on .en { display: block; }
+.dark .en, .red .en, .back .en, .dark .card .en { color: #C9D3E3; }
+.chip.done .en { color: var(--good); }
+.flip .en { font-size: 17px; }
+.ebtn { position: absolute; top: 16px; right: 210px; z-index: 5; font-size: 18px; font-weight: 700; padding: 6px 14px; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; opacity: .8; }
+.ebtn:hover { opacity: 1; }
+.slide.en-on .ebtn { background: var(--ink); border-color: var(--ink); color: #fff; opacity: 1; }
+.dark.en-on .ebtn { background: #F7F3EC; color: var(--ink); }
+
+.slide.en-on .chip .en { display: inline; margin: 0 0 0 14px; font-size: .62em; }
+
+.slide.en-on .front .hint { display: none; }
+.slide.en-on .flip { height: 190px; }
+.slide.en-on.furi .flip { height: 230px; }
+
+/* Upgrade-the-word cards split over two slides, so they can be bigger */
+.flips-big .flip { height: 250px; }
+.flips-big .face { padding: 20px 26px; gap: 10px; }
+.flips-big .front .w { font-size: 58px; }
+.flips-big .back .w { font-size: 44px; }
+.flips-big .back .ex { font-size: 26px; line-height: 1.45; }
+.flips-big .front .hint { font-size: 22px; }
+.flips-big .en { font-size: 22px; }
+.slide.en-on .flips-big .flip { height: 280px; }
+.slide.furi .flips-big .flip { height: 290px; }
+.slide.en-on.furi .flips-big .flip { height: 300px; }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+<section class="slide dark center" data-lesson="Start">
+<p class="eyebrow">Japanese Extension · Journeys 旅</p>
+<span class="j h1">段落から作文へ</span>
+<p class="lead muted">From the paragraph to the 600字 essay · 6 weeks · 12 lessons</p>
+<div class="grid g4" style="margin-top:16px;" id="lessonBtns"></div>
+<p class="small muted">Use ← → or the buttons below. Press F or use the ふりがな button for furigana.</p></section>
+<section class="slide red center" data-lesson="Lesson 1 · Hook + vocabulary">
+<p class="eyebrow">Week 1 · Lesson 1 · Hook</p>
+<span class="j h1">人生の分かれ道。安定か、夢か。</span>
+<div class="row" style="align-items:center; gap:32px; margin-top:12px;">
+<span class="j big">安定</span><div class="line-bar" style="background:#FBF6EE;"></div><span class="j big">夢</span>
+</div>
+<p class="j lead">立ってみよう：私は（安定・夢）をえらぶ。なぜなら、～からだ。</p></section>
+<section class="slide alt" data-lesson="Lesson 1 · Hook + vocabulary">
+<p class="eyebrow">Week 1 · Lesson 1 · Journeys</p>
+<h2>Ryota’s choices raise the question. Japan today gives the evidence.</h2>
+<div class="grid g3">
+<div class="card"><span class="j h3">選択</span><p class="note">Making choices</p><p class="j small">早期離職・転職・地方移住・留学</p></div>
+<div class="card"><span class="j h3">困難を乗り越える</span><p class="note">Overcoming adversity</p><p class="j small">ひきこもり・失敗と再挑戦・支え</p></div>
+<div class="card"><span class="j h3">自分を見つめる</span><p class="note">Self-reflection</p><p class="j small">自己肯定感・自分らしい生き方</p></div>
+</div>
+<p class="lead">This unit: <b>paragraph → introduction and conclusion → body → full essay</b>.</p></section>
+<section class="slide " data-lesson="Lesson 1 · Hook + vocabulary">
+<p class="eyebrow">Week 1 · Lesson 1 · Evidence</p>
+<h2>Six facts about Journeys in Japan</h2>
+<div class="grid g3" id="facts"></div>
+<p class="small muted">Note each fact in Japanese and its strand. Sources are in the booklet’s evidence bank.</p></section>
+<section class="slide alt" data-lesson="Lesson 1 · Hook + vocabulary">
+<p class="eyebrow">Week 1 · Lesson 1 · Upgrade the word (1 of 2)</p>
+<h2>Guess the upgrade, then flip the card</h2>
+<div class="grid g3 flips-big" id="flips"></div></section>
+<section class="slide alt cont" data-lesson="Lesson 1 · Hook + vocabulary">
+<p class="eyebrow">Week 1 · Lesson 1 · Upgrade the word (2 of 2)</p>
+<h2>Guess the upgrade, then flip the card</h2>
+<div class="grid g3 flips-big" id="flips2"></div></section>
+<section class="slide " data-lesson="Lesson 1 · Hook + vocabulary"><p class="eyebrow">Week 1 · Activity 1</p><h2>Upgrade it</h2><div class="qa" data-qa='[[&quot;会社を辞めると［きめた］。&quot;, &quot;会社を辞めると決断した。&quot;], [&quot;留学で大きく［なった］。&quot;, &quot;留学で大きく成長した。&quot;], [&quot;失敗しても［もう一度やる］ことが大切だ。&quot;, &quot;失敗しても再挑戦することが大切だ。&quot;], [&quot;就職は人生の大きな［かわるとき］だ。&quot;, &quot;就職は人生の大きな転機だ。&quot;], [&quot;若いうちの［うまくいかないこと］は悪くない。&quot;, &quot;若いうちの挫折は悪くない。&quot;]]'></div></section>
+<section class="slide alt" data-lesson="Lesson 2 · Collocations + word families">
+<p class="eyebrow">Week 1 · Lesson 2 · Collocations</p>
+<h2>Which verb goes with which noun?</h2>
+<p class="small muted">Click a noun, then the verb that goes with it.</p>
+<div class="match"><div class="col" id="nouns"></div><div class="col" id="verbs"></div></div>
+<p class="status" id="matchStatus" role="status"></p>
+<div><button class="btn" id="matchReset">Reset</button></div></section>
+<section class="slide " data-lesson="Lesson 2 · Collocations + word families">
+<p class="eyebrow">Week 1 · Lesson 2 · Word families</p>
+<h2>Four patterns, many essay words</h2>
+<div class="grid g4">
+<div class="card"><span class="j h3">～力</span><p class="note">the ability to ~</p><button class="btn" data-show="wf1">Show examples</button><div id="wf1" hidden><p class="j small">決断力・行動力・精神力・適応力</p></div></div>
+<div class="card"><span class="j h3">～者</span><p class="note">a person who ~</p><button class="btn" data-show="wf2">Show examples</button><div id="wf2" hidden><p class="j small">転職者・移住者・留学者</p></div></div>
+<div class="card"><span class="j h3">再～</span><p class="note">~ again</p><button class="btn" data-show="wf3">Show examples</button><div id="wf3" hidden><p class="j small">再挑戦・再出発・再発見</p></div></div>
+<div class="card"><span class="j h3">自己～</span><p class="note">self-</p><button class="btn" data-show="wf4">Show examples</button><div id="wf4" hidden><p class="j small">自己肯定感・自己実現・自己負担</p></div></div>
+</div>
+<h3>Activity 3 · Family builder</h3><div class="qa grid g3" data-qa='[[&quot;行動 → ?&quot;, &quot;行動力：夢をかなえるためには、行動力が必要だ。&quot;], [&quot;移住 → ?&quot;, &quot;移住者：都市から地方への移住者が増えている。&quot;], [&quot;出発 → ?&quot;, &quot;再出発：失敗しても、再出発することはできる。&quot;]]'></div></section>
+<section class="slide alt" data-lesson="Lesson 2 · Collocations + word families">
+<p class="eyebrow">Week 1 · Activity 4</p>
+<h2>Start your vocabulary log</h2>
+<p class="lead">Ten words a week. A word only counts once you’ve used it in a sentence.</p>
+<table>
+<tr><th>Word</th><th>Reading</th><th>Meaning</th><th>Goes with…</th><th>My sentence</th></tr>
+<tr><td><span class="j">困難</span></td><td>こんなん</td><td>difficulty</td><td><span class="j">～を乗り越える</span></td><td><span class="j">困難を乗り越えた経験は、自信につながる。</span></td></tr>
+<tr><td><span class="j">転機</span></td><td>てんき</td><td>turning point</td><td><span class="j">人生の～</span></td><td><span class="j">就職は人生の大きな転機だ。</span></td></tr>
+<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+</table></section>
+<section class="slide " data-lesson="Lesson 3 · The five sentence jobs">
+<p class="eyebrow">Week 2 · Lesson 3</p>
+<h2>Every sentence has a job</h2>
+<div class="grid g5">
+<div class="card"><p class="num">1</p><h3>Stance</h3><p class="j small">「～」という考え方に、</p><p class="note">T</p></div>
+<div class="card"><p class="num">2</p><h3>Context</h3><p class="j small">現代の日本では、</p><p class="note">E</p></div>
+<div class="card"><p class="num">3</p><h3>Evidence</h3><p class="j small">たとえば、～によると、</p><p class="note">E</p></div>
+<div class="card"><p class="num">4</p><h3>Meaning</h3><p class="j small">こうした～は、～をあらわしている。</p><p class="note">E</p></div>
+<div class="card"><p class="num">5</p><h3>Link</h3><p class="j small">つまり、このように、</p><p class="note">L</p></div>
+</div>
+<p class="lead">This is the engine of every body paragraph you will write.</p></section>
+<section class="slide alt" data-lesson="Lesson 3 · The five sentence jobs">
+<p class="eyebrow">Week 2 · Lesson 3 · Model A</p>
+<h2>Number the jobs, then check</h2>
+<p class="small muted">Statement: <span class="j">「若者は、安定した仕事より自分の夢を追うべきだ。」</span></p>
+<div class="model labelled" id="mA"><p><span class="seg c1"><span class="tag">1 Stance</span><span class="j">「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。</span></span><span class="seg c2"><span class="tag">2 Context</span><span class="j">現代の日本では、一つの会社で一生働くという考え方が変わりつつある。</span></span><span class="seg c3"><span class="tag">3 Evidence</span><span class="j">たとえば、2024年の転職者は331万人で、3年連続で増加した。</span></span><span class="seg c4"><span class="tag">4 Meaning</span><span class="j">こうした変化は、一度選んだ道が「最後の選択」ではなくなったことをあらわしている。</span></span><span class="seg c5"><span class="tag">5 Link</span><span class="j">つまり、若いうちに夢に挑戦しても、うまくいかなければ再挑戦できる時代になったのだ。</span></span></p></div>
+<div><button class="btn primary" data-label="mA" aria-pressed="false">Show jobs</button></div></section>
+<section class="slide " data-lesson="Lesson 3 · The five sentence jobs">
+<p class="eyebrow">Week 2 · Lesson 3 · Model B</p>
+<h2>Put it in order</h2>
+<p class="small muted">Statement: <span class="j">「困難を乗り越えるのは、本人の努力次第だ。」</span> — click the sentences in order.</p>
+<div class="grid g2" style="align-items:start;"><div class="pool" id="pool"></div><div class="built" id="built"></div></div>
+<div class="row" style="align-items:center;"><button class="btn primary" id="orderCheck">Check</button><button class="btn" id="orderReset">Reset</button><p class="status" id="orderStatus" role="status"></p></div></section>
+<section class="slide alt" data-lesson="Lesson 3 · The five sentence jobs">
+<p class="eyebrow">Week 2 · Activity 2</p>
+<h2>Fix the link: it only repeats the thesis</h2>
+<div class="model" style="border-left-color:var(--accent);"><p class="j">「留学は若者を成長させる」という考え方に、私は強くさんせいする。2023年度に留学を始めた日本人学生は約9万人で、前の年より約5割増加した。だから、留学は若者を成長させる。</p></div><div class="qa" data-qa='[[&quot;Show a model fix&quot;, &quot;こうした学生は、言葉や文化のちがいを乗り越える中で、自分の考え方を見つめ直しているのだろう。つまり、留学は若者に「自分とは何か」を考える機会をあたえているのだ。&quot;]]'></div><p class="small muted">Add a meaning sentence, then a link with a new idea.</p></section>
+<section class="slide " data-lesson="Lesson 4 · Planning and writing">
+<p class="eyebrow">Week 2 · Lesson 4 · Activity 3</p>
+<h2>Plan Paragraph 1</h2>
+<p class="lead"><span class="j">「失敗は成長のチャンスだ。」</span></p>
+<div class="plan">
+<label for="pa1">Stance (keywords!)</label><textarea id="pa1"></textarea>
+<label for="pa2">Context</label><textarea id="pa2"></textarea>
+<label for="pa3">Evidence (a fact)</label><textarea id="pa3"></textarea>
+<label for="pa4">Meaning</label><textarea id="pa4"></textarea>
+<label for="pa5">Link</label><textarea id="pa5"></textarea>
+</div>
+<p class="small muted">Model a plan here with the class. It is not saved when the page reloads.</p></section>
+<section class="slide alt" data-lesson="Lesson 4 · Planning and writing">
+<p class="eyebrow">Week 2 · Lesson 4</p>
+<h2>Build a paragraph from the bank</h2>
+<div style="display:flex; flex-direction:column; gap:8px;" id="builder"></div>
+<div class="out" id="builderOut"><span class="muted">Choose one sentence for each job. Your paragraph appears here.</span></div>
+<p class="status" id="builderStatus" role="status"></p></section>
+<section class="slide " data-lesson="Lesson 4 · Planning and writing">
+<p class="eyebrow">Week 2 · Activity 4 · Homework</p>
+<h2>Paragraph 2: a different strand</h2>
+<p class="lead"><span class="j">「本当の自分を知るためには、ふるさとをはなれる経験が必要だ。」</span></p>
+<div class="check">
+<button class="ck"><span class="box"></span>A different fact from Paragraph 1</button>
+<button class="ck"><span class="box"></span>At least two Week 1 words</button>
+<button class="ck"><span class="box"></span>Every fact followed by what it shows</button>
+<button class="ck"><span class="box"></span>The link adds a new idea</button>
+<button class="ck"><span class="box"></span>150–200字, plain form</button>
+</div></section>
+<section class="slide alt" data-lesson="Lesson 5 · Introductions + conclusions">
+<p class="eyebrow">Week 3 · Lesson 5 · Introduction</p>
+<h2>The introduction in three moves (about 80字)</h2>
+<div class="model labelled" id="mI"><p><span class="seg c1"><span class="tag">1 Hook</span><span class="j">人生には、いくつもの分かれ道がある。</span></span><span class="seg c2"><span class="tag">2 Stance</span><span class="j">「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。</span></span><span class="seg c3"><span class="tag">3 Preview</span><span class="j">その理由を二つの点から考えてみたい。</span></span></p></div>
+<div><button class="btn primary" data-label="mI" aria-pressed="false">Show moves</button></div>
+<p class="small muted">Hook = one sentence of context. Stance = the statement’s keywords. Preview = two reasons are coming.</p></section>
+<section class="slide " data-lesson="Lesson 5 · Introductions + conclusions">
+<p class="eyebrow">Week 3 · Activity 1</p>
+<h2>Rate the intros</h2>
+<p class="small muted">Statement: <span class="j">「失敗は成長のチャンスだ。」</span> Vote first, then reveal.</p><div class="qa" data-qa='[[&quot;失敗は成長のチャンスだと思います。&quot;, &quot;Weak: no hook, no preview, and polite form in an essay.&quot;], [&quot;失敗はだれにでもある。「失敗は成長のチャンスだ」という考え方に、私は強くさんせいする。それには、次の二つの理由がある。&quot;, &quot;Strongest: hook, keywords, clear stance and a preview, all in plain form.&quot;], [&quot;私は去年、テストで失敗した。とても悲しかった。でも、友達が助けてくれた。それで、失敗はいいと思う。&quot;, &quot;Weak: an anecdote with no keywords, no stance phrase and only simple sentences.&quot;]]'></div></section>
+<section class="slide alt" data-lesson="Lesson 5 · Introductions + conclusions">
+<p class="eyebrow">Week 3 · Lesson 5 · Conclusion</p>
+<h2>The conclusion in three moves (120–150字)</h2>
+<div class="model labelled" id="mC"><p><span class="seg c1"><span class="tag">1 Concede</span><span class="j">たしかに、安定した仕事にも大きな価値がある。</span></span><span class="seg c2"><span class="tag">2 Sum up</span><span class="j">しかし、以上のことから、若いうちに夢に挑戦することは、再挑戦できる今の時代にこそ意味があると思う。</span></span><span class="seg c3"><span class="tag">3 Deep thinking</span><span class="j">大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだろう。</span></span></p></div>
+<div><button class="btn primary" data-label="mC" aria-pressed="false">Show moves</button></div>
+<p class="small muted">Never copy the introduction. New words, and a new idea at the end.</p></section>
+<section class="slide " data-lesson="Lesson 5 · Introductions + conclusions">
+<p class="eyebrow">Week 3 · Activity 2</p>
+<h2>Fix the conclusion: it only repeats the intro</h2>
+<div class="model" style="border-left-color:var(--accent);"><p class="j">このように、失敗は成長のチャンスだと思う。それには二つの理由があるからだ。</p></div><div class="qa" data-qa='[[&quot;Show a model conclusion&quot;, &quot;たしかに、失敗はつらい経験だ。しかし、以上のことから、失敗は自分の弱点に気づき、次の挑戦に生かすチャンスになると言える。大切なのは、失敗をおそれることではなく、失敗から何を学ぶかだろう。&quot;]]'></div></section>
+<section class="slide alt" data-lesson="Lesson 6 · Five text types">
+<p class="eyebrow">Week 3 · Lesson 6</p>
+<h2>Same essay, five text types</h2>
+<div><div class="tabs" role="tablist"><button class="tab on" role="tab" aria-selected="true" data-tab="tt0"><span class="j">作文</span></button><button class="tab" role="tab" aria-selected="false" data-tab="tt1"><span class="j">スピーチ</span></button><button class="tab" role="tab" aria-selected="false" data-tab="tt2"><span class="j">きじ</span></button><button class="tab" role="tab" aria-selected="false" data-tab="tt3"><span class="j">手紙</span></button><button class="tab" role="tab" aria-selected="false" data-tab="tt4"><span class="j">フォーラム</span></button></div><div class="model panel on" id="tt0"><p class="small muted">Register: Plain</p><h3>Opening</h3><p class="j">人生には、いくつもの分かれ道がある。「～」という考え方に、私は～。</p><h3 style="margin-top:12px;">Closing</h3><p class="j">大切なのは、～ことだろう。</p></div><div class="model panel" id="tt1"><p class="small muted">Register: Polite</p><h3>Opening</h3><p class="j">みなさん、こんにちは。今日は「～」というテーマについて、私の考えをお話しします。</p><h3 style="margin-top:12px;">Closing</h3><p class="j">これで私のスピーチを終わります。ご清聴ありがとうございました。</p></div><div class="model panel" id="tt2"><p class="small muted">Register: Plain + title</p><h3>Opening</h3><p class="j">「夢か、安定か ― 若者の選択」さいきん、～。そこで、～について考えてみた。</p><h3 style="margin-top:12px;">Closing</h3><p class="j">みなさんも、自分の道について考えてみてほしい。</p></div><div class="model panel" id="tt3"><p class="small muted">Register: Polite, ～様へ / ～より</p><h3>Opening</h3><p class="j">先日、「～」というきじを読み、私の意見をお伝えしたく、この手紙を書きました。</p><h3 style="margin-top:12px;">Closing</h3><p class="j">この意見が、少しでも参考になればうれしいです。</p></div><div class="model panel" id="tt4"><p class="small muted">Register: Plain, personal</p><h3>Opening</h3><p class="j">「～」っていう意見、みんなはどう思う？私は～。</p><h3 style="margin-top:12px;">Closing</h3><p class="j">みんなの意見も聞かせてほしい。</p></div></div>
+<p class="small muted">Only the opening and closing change. The body paragraphs stay the same.</p></section>
+<section class="slide " data-lesson="Lesson 6 · Five text types">
+<p class="eyebrow">Week 3 · Lesson 6</p>
+<h2>Which text type is this opening?</h2>
+<p class="small muted">Click an opening, then its text type.</p>
+<div class="match" style="grid-template-columns: 2fr 1fr;"><div class="col" id="ttOpen"></div><div class="col" id="ttType"></div></div>
+<p class="status" id="ttStatus" role="status"></p>
+<div><button class="btn" id="ttReset">Reset</button></div></section>
+<section class="slide alt" data-lesson="Lesson 6 · Five text types"><p class="eyebrow">Week 3 · Activity 4</p><h2>Deep-thinking closers</h2><p class="small muted">Finish each one for a Journeys essay, then reveal a model.</p><div class="qa" data-qa='[[&quot;大切なのは、＿＿＿ことだろう。&quot;, &quot;大切なのは、失敗から何を学ぶかということだろう。&quot;], [&quot;私たちは、＿＿＿べきではないだろうか。&quot;, &quot;私たちは、若者が再挑戦できる社会を作るべきではないだろうか。&quot;], [&quot;たとえ＿＿＿としても、＿＿＿ことを忘れてはいけない。&quot;, &quot;たとえ失敗したとしても、挑戦した経験に価値があることを忘れてはいけない。&quot;]]'></div></section>
+<section class="slide " data-lesson="Lesson 6 · Five text types">
+<p class="eyebrow">Week 3 · Activity 3</p>
+<h2>One statement, two text types</h2>
+<p class="lead"><span class="j">「失敗は成長のチャンスだ。」</span></p>
+<div class="grid g2">
+<div class="card"><span class="j h3">スピーチ</span><p class="note">Intro + conclusion, polite form, address the audience</p></div>
+<div class="card"><span class="j h3">手紙</span><p class="note">Intro + conclusion, polite form, ～様へ … ～より</p></div>
+</div>
+<div class="check">
+<button class="ck"><span class="box"></span>The statement’s keywords in the opening</button>
+<button class="ck"><span class="box"></span>A preview of two reasons</button>
+<button class="ck"><span class="box"></span>A deep-thinking closer, not a repeat</button>
+<button class="ck"><span class="box"></span>Register consistent from start to finish</button>
+</div></section>
+<section class="slide alt" data-lesson="Lesson 7 · From paragraph to body"><p class="eyebrow">Week 4 · Lesson 7</p><h2>A body paragraph opens with a reason</h2><p class="small muted">The stance is already in your introduction. Reveal how each opener changes.</p><div class="qa" data-qa='[[&quot;「失敗は成長のチャンスだ」という考え方に、私は強くさんせいする。&quot;, &quot;まず、失敗することで自分の弱点に気づけるからだ。&quot;], [&quot;「困難を乗り越えるのは、本人の努力次第だ」という意見に、私ははんたいする。&quot;, &quot;次に、困難の原因は本人だけにあるとはかぎらないからだ。&quot;]]'></div></section>
+<section class="slide " data-lesson="Lesson 7 · From paragraph to body">
+<p class="eyebrow">Week 4 · Lesson 7</p>
+<h2>Two reasons from different angles</h2>
+<div class="grid g2">
+<div class="card"><h3>Two strands</h3><p class="note">Making choices + self-reflection</p><button class="btn" data-show="an1">Example</button><p class="small" id="an1" hidden>Body 1 転職者331万人 · Body 2 協力隊の約7割が定住</p></div>
+<div class="card"><h3>Society vs the individual</h3><p class="note">What the numbers show + what one person learns</p><button class="btn" data-show="an2">Example</button><p class="small" id="an2" hidden>Body 1 留学者約9万人 · Body 2 a friend’s exchange year</p></div>
+<div class="card"><h3>Now vs the future</h3><p class="note">Today + what happens if nothing changes</p><button class="btn" data-show="an3">Example</button><p class="small" id="an3" hidden>Body 1 ひきこもり約146万人 · Body 2 支えがなければ…</p></div>
+<div class="card"><h3>Japan vs Australia</h3><p class="note">A Japanese fact + your own experience</p><button class="btn" data-show="an4">Example</button><p class="small" id="an4" hidden>Body 1 早期離職3割 · Body 2 gap years in Australia</p></div>
+</div></section>
+<section class="slide alt" data-lesson="Lesson 7 · From paragraph to body">
+<p class="eyebrow">Week 4 · Lesson 7</p>
+<h2>Where does the counter-view go?</h2>
+<div class="grid g3">
+<div class="card"><h3>Inside a body paragraph</h3><p class="note">For a strong agree or disagree</p><p class="j small">たしかに～。しかし、～</p></div>
+<div class="card"><h3>Start of the conclusion</h3><p class="note">Most essays: keeps the body focused</p><p class="j small">たしかに、～にも価値がある。しかし、以上のことから、～</p></div>
+<div class="card"><h3>As Body 2</h3><p class="note">For a balanced stance</p><p class="j small">一方で、～という意見もある。</p></div>
+</div></section>
+<section class="slide " data-lesson="Lesson 7 · From paragraph to body">
+<p class="eyebrow">Week 4 · Lesson 7</p>
+<h2>The 5-minute plan</h2>
+<div class="row" style="align-items:center; gap:32px;">
+<p class="timer t-small" data-timer="plan">5:00</p>
+<div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn" data-tset="plan:300">5 min</button><button class="btn" data-tgo="plan">Start</button><button class="btn" data-treset="plan">Reset</button></div>
+</div>
+<p class="lead"><span class="j">「若者は、安定した仕事より自分の夢を追うべきだ。」</span></p><div class="qa grid g2" data-qa='[[&quot;Keywords&quot;, &quot;安定した仕事・夢を追う・べき&quot;], [&quot;Stance&quot;, &quot;ある程度さんせい&quot;], [&quot;Reason 1 + fact&quot;, &quot;やり直せる時代 ― 転職者331万人&quot;], [&quot;Reason 2 + fact&quot;, &quot;自分が見える ― 協力隊8千人、約7割定住&quot;], [&quot;Counter-view + closer&quot;, &quot;結論で：安定にも価値 → 選んだ道に責任を持つ&quot;]]'></div></section>
+<section class="slide alt" data-lesson="Lesson 8 · Linked body paragraphs">
+<p class="eyebrow">Week 4 · Lesson 8</p>
+<h2>Two linked body paragraphs</h2>
+<div><div class="tabs" role="tablist"><button class="tab on" role="tab" aria-selected="true" data-tab="bp1">Body 1 · Making choices</button><button class="tab" role="tab" aria-selected="false" data-tab="bp2">Body 2 · Self-reflection</button></div>
+<div class="model panel on" id="bp1"><p class="j">まず、現代の日本では、一度選んだ道をやり直すことができるようになったからだ。たとえば、2024年の転職者は331万人で、3年連続で増加した。その上、転職を希望する人は約1000万人もいる。こうした数字は、一つの会社で一生働くという考え方が変わりつつあることをあらわしている。つまり、若いうちに夢に挑戦しても、うまくいかなければ別の道を選び直せるのだ。</p></div><div class="model panel" id="bp2"><p class="j">次に、夢に挑戦することで、本当の自分が見えてくるからだ。たとえば、都市から地方に移住して「地域おこし協力隊」になる人は8千人をこえ、その約7割が任期後もその地域に残っている。新しい環境に飛び込んだことで、自分に合った生き方を見つけた人が多いのだろう。このように、夢を追う経験は、自分を見つめ直す機会にもなるのである。</p></div></div>
+<p class="small muted">Find: the reason opener (～からだ), the fact, the meaning sentence, the link.</p></section>
+<section class="slide " data-lesson="Lesson 8 · Linked body paragraphs">
+<p class="eyebrow">Week 4 · Activity 3</p>
+<h2>Linking words: fill the gaps</h2>
+<p class="small muted">Choose from: まず・次に・たしかに・しかし・以上のことから</p>
+<div class="model"><p class="j">（①）、失敗から学ぶことは多いからだ。…（②）、失敗を乗り越えた経験は自信につながるからだ。…（③）、失敗はつらい。（④）、（⑤）、失敗は成長のチャンスだと言える。</p></div><div class="qa" data-qa='[[&quot;① ② ③ ④ ⑤&quot;, &quot;まず → 次に → たしかに → しかし → 以上のことから&quot;]]'></div></section>
+<section class="slide dark" data-lesson="Lesson 8 · Linked body paragraphs">
+<p class="eyebrow">Week 4 · Activity 2</p>
+<h2>Plan race: 5 minutes each</h2>
+<div class="row" style="align-items:center; gap:32px;">
+<p class="timer t-small" data-timer="race">5:00</p>
+<div style="display:flex; gap:10px; flex-wrap:wrap;"><button class="btn" data-tgo="race">Start</button><button class="btn" data-treset="race">Reset</button><button class="btn" id="quickNext">Next statement</button></div>
+</div>
+<div class="qa" id="quick"></div>
+<p class="small muted">Swap after each round: are the two reasons really from different angles?</p></section>
+<section class="slide alt" data-lesson="Lesson 8 · Linked body paragraphs">
+<p class="eyebrow">Week 4 · Activity 4</p>
+<h2>Turn your paragraphs into a body</h2>
+<div class="grid g3">
+<div class="card"><p class="num">1</p><h3>Change the openers</h3><p class="note">まず、～からだ。 / 次に、～からだ。</p></div>
+<div class="card"><p class="num">2</p><h3>Keep the evidence</h3><p class="note">Fact + meaning sentence stay as they are.</p></div>
+<div class="card"><p class="num">3</p><h3>Check the links</h3><p class="note">Does each link lead back to the stance?</p></div>
+</div></section>
+<section class="slide " data-lesson="Lesson 9 · The model essay">
+<p class="eyebrow">Week 5 · Lesson 9 · Activity 1</p>
+<h2>The model essay (about 580字)</h2>
+<div class="model labelled" id="mE" style="padding:20px 28px;"><p style="font-size:21px; line-height:1.75;">
+<span class="seg c1"><span class="tag">Intro · 81字</span><span class="j">人生には、いくつもの分かれ道がある。「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。その理由を二つの点から考えてみたい。</span></span><br>
+<span class="seg c2"><span class="tag">Body 1 · 175字</span><span class="j">まず、現代の日本では、一度選んだ道をやり直すことができるようになったからだ。たとえば、2024年の転職者は331万人で、3年連続で増加した。その上、転職を希望する人は約1000万人もいる。こうした数字は、一つの会社で一生働くという考え方が変わりつつあることをあらわしている。つまり、若いうちに夢に挑戦しても、うまくいかなければ別の道を選び直せるのだ。</span></span><br>
+<span class="seg c3"><span class="tag">Body 2 · 158字</span><span class="j">次に、夢に挑戦することで、本当の自分が見えてくるからだ。たとえば、都市から地方に移住して「地域おこし協力隊」になる人は8千人をこえ、その約7割が任期後もその地域に残っている。新しい環境に飛び込んだことで、自分に合った生き方を見つけた人が多いのだろう。このように、夢を追う経験は、自分を見つめ直す機会にもなるのである。</span></span><br>
+<span class="seg c4"><span class="tag">Conclusion · ~160字</span><span class="j">たしかに、安定した仕事にも大きな価値がある。大学を卒業して就職した人の約3割が3年以内に会社を辞めているように、自分に合う道を見つけるのは簡単ではない。しかし、以上のことから、若いうちに夢に挑戦することは、再挑戦できる今の時代にこそ意味があると思う。大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだろう。</span></span></p></div>
+<div><button class="btn primary" data-label="mE" aria-pressed="false">Show parts</button></div></section>
+<section class="slide alt" data-lesson="Lesson 9 · The model essay">
+<p class="eyebrow">Week 5 · Lesson 9</p>
+<h2>What makes it work</h2>
+<div class="grid g2">
+<div class="card"><h3>Breadth</h3><button class="btn" data-show="w1">Reveal</button><p class="small" id="w1" hidden>Body 1 = making choices, Body 2 = self-reflection, and the conclusion adds a third fact.</p></div>
+<div class="card"><h3>Depth</h3><button class="btn" data-show="w2">Reveal</button><p class="small" id="w2" hidden>Every fact is followed by what it shows: こうした数字は～、～のだろう.</p></div>
+<div class="card"><h3>Flow</h3><button class="btn" data-show="w3">Reveal</button><p class="small" id="w3" hidden>まず → 次に → たしかに…しかし、以上のことから</p></div>
+<div class="card"><h3>Deep thinking</h3><button class="btn" data-show="w4">Reveal</button><p class="small" id="w4" hidden>The last sentence reframes the question: from “which path?” to “own your choice”.</p></div>
+</div></section>
+<section class="slide " data-lesson="Lesson 9 · The model essay">
+<p class="eyebrow">Week 5 · Lesson 9</p>
+<h2>Essay vs speech: only the edges change</h2>
+<div><div class="tabs" role="tablist"><button class="tab on" role="tab" aria-selected="true" data-tab="ev1"><span class="j">作文</span></button><button class="tab" role="tab" aria-selected="false" data-tab="ev2">スピーチ</button></div>
+<div class="model panel on" id="ev1"><h3>Opening</h3><p class="j small">人生には、いくつもの分かれ道がある。「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。その理由を二つの点から考えてみたい。</p><h3 style="margin-top:12px;">Closing</h3><p class="j small">大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだろう。</p></div>
+<div class="model panel" id="ev2"><h3>Opening</h3><p class="j small">みなさん、こんにちは。今日は「若者は、安定した仕事より自分の夢を追うべきだ」というテーマについて、私の考えをお話しします。私は、この考え方にある程度さんせいです。</p><h3 style="margin-top:12px;">Closing</h3><p class="j small">大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだと思います。これで私のスピーチを終わります。ご清聴ありがとうございました。</p></div></div>
+<p class="small muted">Activity 2: rewrite the edges as a 手紙. The body moves into polite form (～からです、～のです).</p></section>
+<section class="slide alt" data-lesson="Lesson 10 · Guided essay">
+<p class="eyebrow">Week 5 · Lesson 10 · Activity 3</p>
+<h2>Guided essay: <span class="j">「失敗は成長のチャンスだ」</span></h2>
+<table><tr><th>Part</th><th>Frame</th></tr><tr><td><b>Intro</b></td><td><span class="j">＿＿＿。「失敗は成長のチャンスだ」という考え方に、私は＿＿＿。その理由を二つの点から考えてみたい。</span></td></tr><tr><td><b>Body 1</b></td><td><span class="j">まず、＿＿＿からだ。たとえば、＿＿＿。こうした＿＿＿は、＿＿＿をあらわしている。つまり、＿＿＿のだ。</span></td></tr><tr><td><b>Body 2</b></td><td><span class="j">次に、＿＿＿からだ。＿＿＿。このように、＿＿＿のである。</span></td></tr><tr><td><b>Conclusion</b></td><td><span class="j">たしかに、＿＿＿。しかし、以上のことから、＿＿＿。大切なのは、＿＿＿ことだろう。</span></td></tr></table>
+<p class="small muted">Use your Week 2 paragraph, Week 3 intro and conclusion, and Week 4 plan.</p></section>
+<section class="slide " data-lesson="Lesson 10 · Guided essay">
+<p class="eyebrow">Week 5 · Lesson 10 · Activity 4</p>
+<h2>Peer check</h2>
+<div class="check">
+<button class="ck"><span class="box"></span>Stance clear in the intro and the same in the conclusion</button>
+<button class="ck"><span class="box"></span>Keywords in the intro, each link and the conclusion</button>
+<button class="ck"><span class="box"></span>Two reasons from different angles, each opening a body paragraph</button>
+<button class="ck"><span class="box"></span>A real fact in each body paragraph, followed by what it shows</button>
+<button class="ck"><span class="box"></span>Counter-view placed deliberately</button>
+<button class="ck"><span class="box"></span>Deep-thinking last sentence · close to 600字</button>
+</div>
+<p class="small muted">Give your partner one strength and one target.</p></section>
+<section class="slide alt" data-lesson="Lesson 11 · Timed essay"><p class="eyebrow">Week 6 · Lesson 11</p><h2>If you get stuck</h2><div class="qa" data-qa='[[&quot;No second reason?&quot;, &quot;Use a different angle: society vs the individual, or Japan vs Australia.&quot;], [&quot;Running short?&quot;, &quot;Add a meaning sentence after a fact (この事から、～) or a hypothetical (～なければ、～だろう).&quot;], [&quot;Running long?&quot;, &quot;Cut the hook sentence and shorten the counter-view.&quot;], [&quot;Can’t remember a figure?&quot;, &quot;Round or soften it: 多くの若者が～、約～割&quot;]]'></div></section>
+<section class="slide red center" data-lesson="Lesson 11 · Timed essay">
+<p class="eyebrow">Week 6 · Lesson 11 · Timed essay</p>
+<div class="row" style="align-items:center; gap:56px;">
+<p class="timer" data-timer="exam">5:00</p>
+<div style="display:flex; flex-direction:column; gap:10px;">
+<button class="btn" data-tset="exam:300">Plan · 5 min</button>
+<button class="btn" data-tset="exam:2100">Write · 35 min</button>
+<button class="btn" data-tset="exam:300">Check · 5 min</button>
+<button class="btn" data-tgo="exam">Start</button>
+<button class="btn" data-treset="exam">Reset</button>
+</div></div>
+<p class="lead">Plan → Intro → Body 1 → Body 2 → Conclusion → Check</p>
+<p class="small muted">Question: your teacher chooses an unseen one from the booklet’s question bank.</p></section>
+<section class="slide " data-lesson="Lesson 12 · Feedback + redraft">
+<p class="eyebrow">Week 6 · Lesson 12</p>
+<h2>Redraft, then reflect</h2>
+<div class="row" style="align-items:start;">
+<div class="check" style="flex:3;">
+<button class="ck"><span class="box"></span>I found my feedback code in the booklet</button>
+<button class="ck"><span class="box"></span>I redrafted only the paragraph it points to</button>
+<button class="ck"><span class="box"></span>I wrote one sentence on what I changed and why</button>
+<button class="ck"><span class="box"></span>I compared my Week 2 paragraph with my Week 6 essay</button>
+</div>
+<div class="card" style="flex:2;"><h3>Two strengths, two targets</h3><p class="small">＋ ＿＿＿＿＿＿</p><p class="small">＋ ＿＿＿＿＿＿</p><p class="small">→ ＿＿＿＿＿＿</p><p class="small">→ ＿＿＿＿＿＿</p></div>
+</div></section>
+
+</div></div>
+<nav aria-label="Slide navigation">
+  <button id="prev" aria-label="Previous slide">← Prev</button>
+  <span id="count" aria-live="polite">1 / 40</span>
+  <button id="next" aria-label="Next slide">Next →</button>
+  <button id="furiAll" aria-pressed="false" title="Shortcut: F">Furigana: all off</button>
+  <button id="fullBtn" title="Full screen">⛶ Full screen</button>
+  <button id="enAll" aria-pressed="false" title="Shortcut: E">English: all off</button>
+  <span class="sp"></span>
+  <label class="hide-sm" for="jump">Jump to</label>
+  <select id="jump"></select>
+</nav>
+<script>
+(function () {
+  const FURI = {"段落から作文へ": ["だんらく", "さくぶん"], "人生の分かれ道。安定か、夢か。": ["じんせい", "わ", "みち", "あんてい", "ゆめ"], "安定": ["あんてい"], "夢": ["ゆめ"], "立ってみよう：私は（安定・夢）をえらぶ。なぜなら、～からだ。": ["た", "わたし", "あんてい", "ゆめ"], "選択": ["せんたく"], "早期離職・転職・地方移住・留学": ["そうきりしょく", "てんしょく", "ちほういじゅう", "りゅうがく"], "困難を乗り越える": ["こんなん", "の", "こ"], "ひきこもり・失敗と再挑戦・支え": ["しっぱい", "さいちょうせん", "ささ"], "自分を見つめる": ["じぶん", "み"], "自己肯定感・自分らしい生き方": ["じここうていかん", "じぶん", "い", "かた"], "早期離職": ["そうきりしょく"], "大卒の31.2%が、3年以内に最初の会社を辞めた。": ["だいそつ", "ねんいない", "さいしょ", "かいしゃ", "や"], "転職": ["てんしょく"], "2024年の転職者は331万人。3年連続で増加。": ["ねん", "てんしょくしゃ", "まんにん", "ねんれんぞく", "ぞうか"], "地域おこし協力隊": ["ちいき", "きょうりょくたい"], "8,196人（2025年度）。任期後、約7割が定住。": ["にん", "ねんど", "にんきご", "やく", "わり", "ていじゅう"], "留学": ["りゅうがく"], "2023年度、89,179人が留学を始めた。前年より53.3%増。": ["ねんど", "にん", "りゅうがく", "はじ", "ぜんねん", "ぞう"], "自己肯定感": ["じここうていかん"], "「今の自分が好きだ」日本53.4%、アメリカ71.5%。": ["いま", "じぶん", "す", "にほん"], "約146万人、15〜64歳の約50人に1人。": ["やく", "まんにん", "さい", "やく", "にん", "にん"], "選択する": ["せんたく"], "自分の進路を自分で選択する若者が増えている。": ["じぶん", "しんろ", "じぶん", "せんたく", "わかもの", "ふ"], "決断する": ["けつだん"], "会社を辞めると決断するのは、簡単ではない。": ["かいしゃ", "や", "けつだん", "かんたん"], "挑戦する": ["ちょうせん"], "新しいことに挑戦することで、人は成長する。": ["あたら", "ちょうせん", "ひと", "せいちょう"], "困難": ["こんなん"], "困難を乗り越えた経験は、自信につながる。": ["こんなん", "の", "こ", "けいけん", "じしん"], "挫折": ["ざせつ"], "若いうちの挫折は、必ずしも悪いことではない。": ["わか", "ざせつ", "かなら", "わる"], "大きくなる": ["おお"], "成長する": ["せいちょう"], "留学を通して、精神的に成長する学生は多い。": ["りゅうがく", "とお", "せいしんてき", "せいちょう", "がくせい", "おお"], "転機": ["てんき"], "就職は人生の大きな転機だ。": ["しゅうしょく", "じんせい", "おお", "てんき"], "安定した": ["あんてい"], "安定した生活を大切にする人も多い。": ["あんてい", "せいかつ", "たいせつ", "ひと", "おお"], "もう一度やる": ["いちど"], "再挑戦する": ["さいちょうせん"], "失敗しても再挑戦できる社会が必要だ。": ["しっぱい", "さいちょうせん", "しゃかい", "ひつよう"], "将来への不安": ["しょうらい", "ふあん"], "将来への不安から、安定した仕事を選ぶ人もいる。": ["しょうらい", "ふあん", "あんてい", "しごと", "えら", "ひと"], "会社を辞めると［きめた］。": ["かいしゃ", "や"], "会社を辞めると決断した。": ["かいしゃ", "や", "けつだん"], "留学で大きく［なった］。": ["りゅうがく", "おお"], "留学で大きく成長した。": ["りゅうがく", "おお", "せいちょう"], "失敗しても［もう一度やる］ことが大切だ。": ["しっぱい", "いちど", "たいせつ"], "失敗しても再挑戦することが大切だ。": ["しっぱい", "さいちょうせん", "たいせつ"], "就職は人生の大きな［かわるとき］だ。": ["しゅうしょく", "じんせい", "おお"], "若いうちの［うまくいかないこと］は悪くない。": ["わか", "わる"], "若いうちの挫折は悪くない。": ["わか", "ざせつ", "わる"], "を乗り越える": ["の", "こ"], "を追う": ["お"], "視野": ["しや"], "を広げる": ["ひろ"], "自分": ["じぶん"], "を見つめ直す": ["み", "なお"], "一歩": ["いっぽ"], "を踏み出す": ["ふ", "だ"], "失敗": ["しっぱい"], "から学ぶ": ["まな"], "～を乗り越える": ["の", "こ"], "✓困難を乗り越える": ["こんなん", "の", "こ"], "～を追う": ["お"], "✓夢を追う": ["ゆめ", "お"], "～を広げる": ["ひろ"], "✓視野を広げる": ["しや", "ひろ"], "～を見つめ直す": ["み", "なお"], "✓自分を見つめ直す": ["じぶん", "み", "なお"], "～を踏み出す": ["ふ", "だ"], "✓一歩を踏み出す": ["いっぽ", "ふ", "だ"], "～から学ぶ": ["まな"], "✓失敗から学ぶ": ["しっぱい", "まな"], "～力": ["りょく"], "決断力・行動力・精神力・適応力": ["けつだんりょく", "こうどうりょく", "せいしんりょく", "てきおうりょく"], "～者": ["しゃ"], "転職者・移住者・留学者": ["てんしょくしゃ", "いじゅうしゃ", "りゅうがくしゃ"], "再～": ["さい"], "再挑戦・再出発・再発見": ["さいちょうせん", "さいしゅっぱつ", "さいはっけん"], "自己～": ["じこ"], "自己肯定感・自己実現・自己負担": ["じここうていかん", "じこじつげん", "じこふたん"], "行動→": ["こうどう"], "行動力：夢をかなえるためには、行動力が必要だ。": ["こうどうりょく", "ゆめ", "こうどうりょく", "ひつよう"], "移住→": ["いじゅう"], "移住者：都市から地方への移住者が増えている。": ["いじゅうしゃ", "とし", "ちほう", "いじゅうしゃ", "ふ"], "出発→": ["しゅっぱつ"], "再出発：失敗しても、再出発することはできる。": ["さいしゅっぱつ", "しっぱい", "さいしゅっぱつ"], "人生の～": ["じんせい"], "「～」という考え方に、": ["かんが", "かた"], "現代の日本では、": ["げんだい", "にほん"], "「若者は、安定した仕事より自分の夢を追うべきだ。」": ["わかもの", "あんてい", "しごと", "じぶん", "ゆめ", "お"], "「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。": ["わかもの", "あんてい", "しごと", "じぶん", "ゆめ", "お", "かんが", "かた", "わたし", "ていど"], "現代の日本では、一つの会社で一生働くという考え方が変わりつつある。": ["げんだい", "にほん", "ひと", "かいしゃ", "いっしょうはたら", "かんが", "かた", "か"], "たとえば、2024年の転職者は331万人で、3年連続で増加した。": ["ねん", "てんしょくしゃ", "まんにん", "ねんれんぞく", "ぞうか"], "こうした変化は、一度選んだ道が「最後の選択」ではなくなったことをあらわしている。": ["へんか", "いちどえら", "みち", "さいご", "せんたく"], "つまり、若いうちに夢に挑戦しても、うまくいかなければ再挑戦できる時代になったのだ。": ["わか", "ゆめ", "ちょうせん", "さいちょうせん", "じだい"], "「困難を乗り越えるのは、本人の努力次第だ」という意見に、私ははんたいする。たしかに、本人の努力は欠かせない。": ["こんなん", "の", "こ", "ほんにん", "どりょくしだい", "いけん", "わたし", "ほんにん", "どりょく", "か"], "しかし、日本では15〜64歳の約50人に1人、約146万人がひきこもりの状態にあると推計されている。": ["にほん", "さい", "やく", "にん", "にん", "やく", "まんにん", "じょうたい", "すいけい"], "その約5人に1人は、新型コロナの流行がきっかけだったそうだ。": ["やく", "にん", "にん", "しんがた", "りゅうこう"], "このことから、困難の原因は本人だけにあるとはかぎらないことが分かる。": ["こんなん", "げんいん", "ほんにん", "わ"], "つまり、困難を乗り越えるためには、努力だけでなく、まわりの支えが必要なのだ。": ["こんなん", "の", "こ", "どりょく", "ささ", "ひつよう"], "「困難を乗り越えるのは、本人の努力次第だ。」": ["こんなん", "の", "こ", "ほんにん", "どりょくしだい"], "「留学は若者を成長させる」という考え方に、私は強くさんせいする。2023年度に留学を始めた日本人学生は約9万人で、前の年より約5割増加した。だから、留学は若者を成長させる。": ["りゅうがく", "わかもの", "せいちょう", "かんが", "かた", "わたし", "つよ", "ねんど", "りゅうがく", "はじ", "にほんじんがくせい", "やく", "まんにん", "まえ", "とし", "やく", "わりぞうか", "りゅうがく", "わかもの", "せいちょう"], "こうした学生は、言葉や文化のちがいを乗り越える中で、自分の考え方を見つめ直しているのだろう。つまり、留学は若者に「自分とは何か」を考える機会をあたえているのだ。": ["がくせい", "ことば", "ぶんか", "の", "こ", "なか", "じぶん", "かんが", "かた", "み", "なお", "りゅうがく", "わかもの", "じぶん", "なに", "かんが", "きかい"], "「失敗は成長のチャンスだ。」": ["しっぱい", "せいちょう"], "「失敗は成長のチャンスだ」という考え方に、私は強くさんせいする。": ["しっぱい", "せいちょう", "かんが", "かた", "わたし", "つよ"], "「失敗は成長のチャンスだ」という考え方に、私はかならずしもさんせいしない。": ["しっぱい", "せいちょう", "かんが", "かた", "わたし"], "現代の日本では、一度の失敗で人生が決まる時代ではなくなった。": ["げんだい", "にほん", "いちど", "しっぱい", "じんせい", "き", "じだい"], "しかし、失敗から立ち直れない人も少なくない。": ["しっぱい", "た", "なお", "ひと", "すく"], "たとえば、約146万人がひきこもりの状態にあると推計されている。": ["やく", "まんにん", "じょうたい", "すいけい"], "こうした数字は、失敗しても別の道を選べることをあらわしている。": ["すうじ", "しっぱい", "べつ", "みち", "えら"], "このことから、失敗が大きな困難につながる場合もあることが分かる。": ["しっぱい", "おお", "こんなん", "ばあい", "わ"], "つまり、失敗は新しい道を見つけるチャンスなのだ。": ["しっぱい", "あたら", "みち", "み"], "つまり、失敗が成長につながるかどうかは、まわりの支え次第なのだ。": ["しっぱい", "せいちょう", "ささ", "しだい"], "「本当の自分を知るためには、ふるさとをはなれる経験が必要だ。」": ["ほんとう", "じぶん", "し", "けいけん", "ひつよう"], "人生には、いくつもの分かれ道がある。": ["じんせい", "わ", "みち"], "その理由を二つの点から考えてみたい。": ["りゆう", "ふた", "てん", "かんが"], "失敗は成長のチャンスだと思います。": ["しっぱい", "せいちょう", "おも"], "失敗はだれにでもある。「失敗は成長のチャンスだ」という考え方に、私は強くさんせいする。それには、次の二つの理由がある。": ["しっぱい", "しっぱい", "せいちょう", "かんが", "かた", "わたし", "つよ", "つぎ", "ふた", "りゆう"], "私は去年、テストで失敗した。とても悲しかった。でも、友達が助けてくれた。それで、失敗はいいと思う。": ["わたし", "きょねん", "しっぱい", "かな", "ともだち", "たす", "しっぱい", "おも"], "たしかに、安定した仕事にも大きな価値がある。": ["あんてい", "しごと", "おお", "かち"], "しかし、以上のことから、若いうちに夢に挑戦することは、再挑戦できる今の時代にこそ意味があると思う。": ["いじょう", "わか", "ゆめ", "ちょうせん", "さいちょうせん", "いま", "じだい", "いみ", "おも"], "大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだろう。": ["たいせつ", "みち", "えら", "じぶん", "えら", "みち", "せきにん", "も"], "このように、失敗は成長のチャンスだと思う。それには二つの理由があるからだ。": ["しっぱい", "せいちょう", "おも", "ふた", "りゆう"], "たしかに、失敗はつらい経験だ。しかし、以上のことから、失敗は自分の弱点に気づき、次の挑戦に生かすチャンスになると言える。大切なのは、失敗をおそれることではなく、失敗から何を学ぶかだろう。": ["しっぱい", "けいけん", "いじょう", "しっぱい", "じぶん", "じゃくてん", "き", "つぎ", "ちょうせん", "い", "い", "たいせつ", "しっぱい", "しっぱい", "なに", "まな"], "人生には、いくつもの分かれ道がある。「～」という考え方に、私は～。": ["じんせい", "わ", "みち", "かんが", "かた", "わたし"], "大切なのは、～ことだろう。": ["たいせつ"], "みなさん、こんにちは。今日は「～」というテーマについて、私の考えをお話しします。": ["きょう", "わたし", "かんが", "はな"], "これで私のスピーチを終わります。ご清聴ありがとうございました。": ["わたし", "お", "せいちょう"], "「夢か、安定か―若者の選択」さいきん、～。そこで、～について考えてみた。": ["ゆめ", "あんてい", "わかもの", "せんたく", "かんが"], "みなさんも、自分の道について考えてみてほしい。": ["じぶん", "みち", "かんが"], "先日、「～」というきじを読み、私の意見をお伝えしたく、この手紙を書きました。": ["せんじつ", "よ", "わたし", "いけん", "つた", "てがみ", "か"], "この意見が、少しでも参考になればうれしいです。": ["いけん", "すこ", "さんこう"], "「～」っていう意見、みんなはどう思う？私は～。": ["いけん", "おも", "わたし"], "みんなの意見も聞かせてほしい。": ["いけん", "き"], "作文": ["さくぶん"], "手紙": ["てがみ"], "大切なのは、＿＿＿ことだろう。": ["たいせつ"], "大切なのは、失敗から何を学ぶかということだろう。": ["たいせつ", "しっぱい", "なに", "まな"], "私たちは、＿＿＿べきではないだろうか。": ["わたし"], "私たちは、若者が再挑戦できる社会を作るべきではないだろうか。": ["わたし", "わかもの", "さいちょうせん", "しゃかい", "つく"], "たとえ＿＿＿としても、＿＿＿ことを忘れてはいけない。": ["わす"], "たとえ失敗したとしても、挑戦した経験に価値があることを忘れてはいけない。": ["しっぱい", "ちょうせん", "けいけん", "かち", "わす"], "まず、失敗することで自分の弱点に気づけるからだ。": ["しっぱい", "じぶん", "じゃくてん", "き"], "「困難を乗り越えるのは、本人の努力次第だ」という意見に、私ははんたいする。": ["こんなん", "の", "こ", "ほんにん", "どりょくしだい", "いけん", "わたし"], "次に、困難の原因は本人だけにあるとはかぎらないからだ。": ["つぎ", "こんなん", "げんいん", "ほんにん"], "1転職者331万人·2協力隊の約7割が定住": ["てんしょくしゃ", "まんにん", "きょうりょくたい", "やく", "わり", "ていじゅう"], "1留学者約9万人·2": ["りゅうがくしゃやく", "まんにん"], "1ひきこもり約146万人·2支えがなければ…": ["やく", "まんにん", "ささ"], "1早期離職3割·2": ["そうきりしょく", "わり"], "たしかに、～にも価値がある。しかし、以上のことから、～": ["かち", "いじょう"], "一方で、～という意見もある。": ["いっぽう", "いけん"], "安定した仕事・夢を追う・べき": ["あんてい", "しごと", "ゆめ", "お"], "ある程度さんせい": ["ていど"], "やり直せる時代―転職者331万人": ["なお", "じだい", "てんしょくしゃ", "まんにん"], "自分が見える―協力隊8千人、約7割定住": ["じぶん", "み", "きょうりょくたい", "せんにん", "やく", "わりていじゅう"], "結論で：安定にも価値→選んだ道に責任を持つ": ["けつろん", "あんてい", "かち", "えら", "みち", "せきにん", "も"], "まず、現代の日本では、一度選んだ道をやり直すことができるようになったからだ。たとえば、2024年の転職者は331万人で、3年連続で増加した。その上、転職を希望する人は約1000万人もいる。こうした数字は、一つの会社で一生働くという考え方が変わりつつあることをあらわしている。つまり、若いうちに夢に挑戦しても、うまくいかなければ別の道を選び直せるのだ。": ["げんだい", "にほん", "いちどえら", "みち", "なお", "ねん", "てんしょくしゃ", "まんにん", "ねんれんぞく", "ぞうか", "うえ", "てんしょく", "きぼう", "ひと", "やく", "まんにん", "すうじ", "ひと", "かいしゃ", "いっしょうはたら", "かんが", "かた", "か", "わか", "ゆめ", "ちょうせん", "べつ", "みち", "えら", "なお"], "次に、夢に挑戦することで、本当の自分が見えてくるからだ。たとえば、都市から地方に移住して「地域おこし協力隊」になる人は8千人をこえ、その約7割が任期後もその地域に残っている。新しい環境に飛び込んだことで、自分に合った生き方を見つけた人が多いのだろう。このように、夢を追う経験は、自分を見つめ直す機会にもなるのである。": ["つぎ", "ゆめ", "ちょうせん", "ほんとう", "じぶん", "み", "とし", "ちほう", "いじゅう", "ちいき", "きょうりょくたい", "ひと", "せんにん", "やく", "わり", "にんきご", "ちいき", "のこ", "あたら", "かんきょう", "と", "こ", "じぶん", "あ", "い", "かた", "み", "ひと", "おお", "ゆめ", "お", "けいけん", "じぶん", "み", "なお", "きかい"], "（①）、失敗から学ぶことは多いからだ。…（②）、失敗を乗り越えた経験は自信につながるからだ。…（③）、失敗はつらい。（④）、（⑤）、失敗は成長のチャンスだと言える。": ["しっぱい", "まな", "おお", "しっぱい", "の", "こ", "けいけん", "じしん", "しっぱい", "しっぱい", "せいちょう", "い"], "まず→次に→たしかに→しかし→以上のことから": ["つぎ", "いじょう"], "まず・次に・たしかに・しかし・以上のことから": ["つぎ", "いじょう"], "「若者は失敗をおそれずに挑戦すべきだ。」": ["わかもの", "しっぱい", "ちょうせん"], "「今の若者は、前の世代より自由に人生を選べる。」": ["いま", "わかもの", "まえ", "せだい", "じゆう", "じんせい", "えら"], "まず、～からだ。/次に、～からだ。": ["つぎ"], "人生には、いくつもの分かれ道がある。「若者は、安定した仕事より自分の夢を追うべきだ」という考え方に、私はある程度さんせいする。その理由を二つの点から考えてみたい。": ["じんせい", "わ", "みち", "わかもの", "あんてい", "しごと", "じぶん", "ゆめ", "お", "かんが", "かた", "わたし", "ていど", "りゆう", "ふた", "てん", "かんが"], "たしかに、安定した仕事にも大きな価値がある。大学を卒業して就職した人の約3割が3年以内に会社を辞めているように、自分に合う道を見つけるのは簡単ではない。しかし、以上のことから、若いうちに夢に挑戦することは、再挑戦できる今の時代にこそ意味があると思う。大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだろう。": ["あんてい", "しごと", "おお", "かち", "だいがく", "そつぎょう", "しゅうしょく", "ひと", "やく", "わり", "ねんいない", "かいしゃ", "や", "じぶん", "あ", "みち", "み", "かんたん", "いじょう", "わか", "ゆめ", "ちょうせん", "さいちょうせん", "いま", "じだい", "いみ", "おも", "たいせつ", "みち", "えら", "じぶん", "えら", "みち", "せきにん", "も"], "こうした数字は～、～のだろう.": ["すうじ"], "まず→次に→たしかに…しかし、以上のことから": ["つぎ", "いじょう"], "みなさん、こんにちは。今日は「若者は、安定した仕事より自分の夢を追うべきだ」というテーマについて、私の考えをお話しします。私は、この考え方にある程度さんせいです。": ["きょう", "わかもの", "あんてい", "しごと", "じぶん", "ゆめ", "お", "わたし", "かんが", "はな", "わたし", "かんが", "かた", "ていど"], "大切なのは、どの道を選ぶかではなく、自分で選んだ道に責任を持つことだと思います。これで私のスピーチを終わります。ご清聴ありがとうございました。": ["たいせつ", "みち", "えら", "じぶん", "えら", "みち", "せきにん", "も", "おも", "わたし", "お", "せいちょう"], "＿＿＿。「失敗は成長のチャンスだ」という考え方に、私は＿＿＿。その理由を二つの点から考えてみたい。": ["しっぱい", "せいちょう", "かんが", "かた", "わたし", "りゆう", "ふた", "てん", "かんが"], "次に、＿＿＿からだ。＿＿＿。このように、＿＿＿のである。": ["つぎ"], "たしかに、＿＿＿。しかし、以上のことから、＿＿＿。大切なのは、＿＿＿ことだろう。": ["いじょう", "たいせつ"], "「失敗は成長のチャンスだ」": ["しっぱい", "せいちょう"], "多くの若者が～、約～割": ["おお", "わかもの", "やく", "わり"]};
+  const D = {"FACTS": [["早期離職", "大卒の31.2%が、3年以内に最初の会社を辞めた。", "Graduates who started work in 2023 · MHLW"], ["転職", "2024年の転職者は331万人。3年連続で増加。", "About 10 million want to change jobs"], ["地域おこし協力隊", "8,196人（2025年度）。任期後、約7割が定住。", "City-to-rural movers · record 6 years running"], ["留学", "2023年度、89,179人が留学を始めた。前年より53.3%増。", "Australia was the no. 2 destination"], ["自己肯定感", "「今の自分が好きだ」日本53.4%、アメリカ71.5%。", "Five-country youth survey"], ["ひきこもり", "約146万人、15〜64歳の約50人に1人。", "About 1 in 5 named COVID-19 as the trigger"]], "FLIPS": [["えらぶ", "選択する", "自分の進路を自分で選択する若者が増えている。"], ["きめる", "決断する", "会社を辞めると決断するのは、簡単ではない。"], ["がんばる", "挑戦する", "新しいことに挑戦することで、人は成長する。"], ["むずかしいこと", "困難", "困難を乗り越えた経験は、自信につながる。"], ["うまくいかないこと", "挫折", "若いうちの挫折は、必ずしも悪いことではない。"], ["大きくなる", "成長する", "留学を通して、精神的に成長する学生は多い。"], ["かわるとき", "転機", "就職は人生の大きな転機だ。"], ["かわらない", "安定した", "安定した生活を大切にする人も多い。"], ["もう一度やる", "再挑戦する", "失敗しても再挑戦できる社会が必要だ。"], ["ふあん", "将来への不安", "将来への不安から、安定した仕事を選ぶ人もいる。"]], "PAIRS": [["困難", "を乗り越える"], ["夢", "を追う"], ["視野", "を広げる"], ["自分", "を見つめ直す"], ["一歩", "を踏み出す"], ["失敗", "から学ぶ"]], "ORDER": [["b", "Stance", "「困難を乗り越えるのは、本人の努力次第だ」という意見に、私ははんたいする。たしかに、本人の努力は欠かせない。"], ["d", "Evidence", "しかし、日本では15〜64歳の約50人に1人、約146万人がひきこもりの状態にあると推計されている。"], ["a", "Evidence", "その約5人に1人は、新型コロナの流行がきっかけだったそうだ。"], ["e", "Meaning", "このことから、困難の原因は本人だけにあるとはかぎらないことが分かる。"], ["c", "Link", "つまり、困難を乗り越えるためには、努力だけでなく、まわりの支えが必要なのだ。"]], "BANK": [["Stance", "「失敗は成長のチャンスだ」という考え方に、私は強くさんせいする。", "「失敗は成長のチャンスだ」という考え方に、私はかならずしもさんせいしない。"], ["Context", "現代の日本では、一度の失敗で人生が決まる時代ではなくなった。", "しかし、失敗から立ち直れない人も少なくない。"], ["Evidence", "たとえば、2024年の転職者は331万人で、3年連続で増加した。", "たとえば、約146万人がひきこもりの状態にあると推計されている。"], ["Meaning", "こうした数字は、失敗しても別の道を選べることをあらわしている。", "このことから、失敗が大きな困難につながる場合もあることが分かる。"], ["Link", "つまり、失敗は新しい道を見つけるチャンスなのだ。", "つまり、失敗が成長につながるかどうかは、まわりの支え次第なのだ。"]], "TTMATCH": [["作文", "人生には、いくつもの分かれ道がある。「～」という考え方に、私は～。"], ["スピーチ", "みなさん、こんにちは。今日は「～」というテーマについて、私の考えをお話しします。"], ["きじ", "「夢か、安定か ― 若者の選択」さいきん、～。そこで、～について考えてみた。"], ["手紙", "先日、「～」というきじを読み、私の意見をお伝えしたく、この手紙を書きました。"], ["フォーラム", "「～」っていう意見、みんなはどう思う？私は～。"]], "PLANQ": ["「若者は失敗をおそれずに挑戦すべきだ。」", "「本当の自分を知るためには、ふるさとをはなれる経験が必要だ。」", "「今の若者は、前の世代より自由に人生を選べる。」"], "LESSONS": [[2, "Lesson 1 · Hook + vocabulary"], [8, "Lesson 2 · Collocations + word families"], [11, "Lesson 3 · The five sentence jobs"], [15, "Lesson 4 · Planning and writing"], [18, "Lesson 5 · Introductions + conclusions"], [22, "Lesson 6 · Five text types"], [26, "Lesson 7 · From paragraph to body"], [30, "Lesson 8 · Linked body paragraphs"], [34, "Lesson 9 · The model essay"], [37, "Lesson 10 · Guided essay"], [39, "Lesson 11 · Timed essay"], [41, "Lesson 12 · Feedback + redraft"]]};
+  const KRUN = /[一-鿿々〆ヶ]+/g;
+  function norm(t) { return String(t).replace(/[\sA-Za-z~’'“”"?:]/g, ''); }
+  function textOf(el) { const c = el.cloneNode(true); c.querySelectorAll('rt, .rbtn, .ebtn, .en, .tag').forEach(x => x.remove()); return c.textContent; }
+  function rubify(el, key) {
+    if (!el || el.querySelector('ruby')) return;
+    const list = Array.isArray(key) ? key : FURI[norm(key)];
+    if (!list) return;
+    const nodes = [];
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('rt, .rbtn, .tag') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    let n, all = '';
+    while ((n = w.nextNode())) { nodes.push({ node: n, start: all.length }); all += n.nodeValue; }
+    const runs = []; let m; KRUN.lastIndex = 0;
+    while ((m = KRUN.exec(all))) runs.push([m.index, m.index + m[0].length]);
+    if (runs.length !== list.length) return;
+    const per = new Map();
+    runs.forEach((r, k) => {
+      const owner = nodes.find(x => r[0] >= x.start && r[1] <= x.start + x.node.nodeValue.length);
+      if (!owner) return;
+      if (!per.has(owner)) per.set(owner, []);
+      per.get(owner).push([r[0] - owner.start, r[1] - owner.start, list[k]]);
+    });
+    per.forEach((items, owner) => {
+      items.sort((x, y) => y[0] - x[0]).forEach(([s0, e0, rd]) => {
+        const mid = owner.node.splitText(s0); mid.splitText(e0 - s0);
+        const ruby = document.createElement('ruby');
+        mid.parentNode.insertBefore(ruby, mid); ruby.appendChild(mid);
+        const rt = document.createElement('rt'); rt.textContent = rd; ruby.appendChild(rt);
+      });
+    });
+  }
+  function annotate(root) {
+    root.querySelectorAll('.j, .q, .a, .w, .ex, .chip, .ck, p.small, .note, .opt, .sent, .fj').forEach(el => {
+      if (el.closest('.j') && !el.classList.contains('j')) return;
+      if (el.querySelector('.j')) return;
+      rubify(el, textOf(el));
+    });
+  }
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  // Slide labels: a continuation slide shares its number with the one before (4a, 4b), so lesson-plan numbers stay the same
+  const LABELS = []; let LNUM = 0;
+  slides.forEach((s, i) => { if (s.classList.contains('cont')) { LABELS[i - 1] = LNUM + 'a'; LABELS[i] = LNUM + 'b'; } else { LNUM++; LABELS[i] = String(LNUM); } });
+  function idxOf(label) { const i = LABELS.indexOf(String(label)); return i < 0 ? LABELS.indexOf(String(label) + 'a') : i; }
+  const stage = document.getElementById('stage');
+  const vp = document.getElementById('viewport');
+  let cur = 0;
+  function fit() { const s = Math.min(vp.clientWidth / 1600, vp.clientHeight / 900); stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')'; }
+  window.addEventListener('resize', fit);
+  function show(i, push) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => s.classList.toggle('active', k === cur));
+    document.getElementById('count').textContent = LABELS[cur] + ' / ' + LNUM;
+    document.getElementById('jump').value = String(cur);
+    if (push !== false) { try { history.replaceState(null, '', '#slide-' + LABELS[cur]); } catch (e) { location.hash = 'slide-' + (cur + 1); } }
+  }
+
+  // Jump menu
+  const jump = document.getElementById('jump'); let last = '';
+  slides.forEach((s, k) => {
+    const lesson = s.dataset.lesson || '';
+    const h = s.querySelector('h2, .h1, h1');
+    const title = h ? textOf(h).replace(/\s+/g, ' ').trim().slice(0, 42) : '';
+    if (lesson !== last) { const og = document.createElement('optgroup'); og.label = lesson; jump.appendChild(og); last = lesson; }
+    const o = document.createElement('option'); o.value = String(k); o.textContent = LABELS[k] + '. ' + title; jump.lastChild.appendChild(o);
+  });
+  jump.addEventListener('change', () => show(parseInt(jump.value, 10)));
+  document.getElementById('prev').addEventListener('click', () => show(cur - 1));
+  document.getElementById('next').addEventListener('click', () => show(cur + 1));
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { show(cur + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(cur - 1); e.preventDefault(); }
+  });
+
+  // Lesson buttons on the cover
+  const lb = document.getElementById('lessonBtns');
+  D.LESSONS.forEach(([n, label], k) => {
+    const b = document.createElement('button'); b.className = 'btn';
+    b.textContent = 'Week ' + (Math.floor(k / 2) + 1) + ' · ' + label.split(' · ')[0];
+    b.addEventListener('click', () => show(n - 1)); lb.appendChild(b);
+  });
+
+  // Q&A reveal lists
+  document.querySelectorAll('[data-qa]').forEach(box => {
+    let items = []; try { items = JSON.parse(box.dataset.qa); } catch (e) { return; }
+    items.forEach((it, k) => {
+      const d = document.createElement('div'); d.className = 'qa-item';
+      d.innerHTML = '<span class="n">' + (k + 1) + '</span><span class="q"></span><button class="btn" aria-expanded="false">Reveal</button><span class="a"></span>';
+      d.querySelector('.q').textContent = it[0]; d.querySelector('.a').textContent = it[1];
+      const b = d.querySelector('button');
+      b.addEventListener('click', () => { const open = d.classList.toggle('open'); b.textContent = open ? 'Hide' : 'Reveal'; b.setAttribute('aria-expanded', String(open)); });
+      box.appendChild(d);
+    });
+  });
+  document.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => {
+    const t = document.getElementById(b.dataset.show); t.hidden = !t.hidden;
+    b.textContent = t.hidden ? b.textContent.replace('Hide', 'Show').replace('Hide', 'Reveal') : (b.textContent.startsWith('Show') ? b.textContent.replace('Show', 'Hide') : 'Hide');
+  }));
+
+  // Facts
+  const fe = document.getElementById('facts');
+  D.FACTS.forEach(f => {
+    const c = document.createElement('div'); c.className = 'card fact';
+    c.innerHTML = '<h3></h3><button class="btn">Show fact</button><p class="fj" hidden></p><p class="note" hidden></p>';
+    c.querySelector('h3').textContent = f[0]; c.querySelector('.fj').textContent = f[1]; c.querySelector('.note').textContent = f[2];
+    rubify(c.querySelector('h3'), f[0]); rubify(c.querySelector('.fj'), f[1]);
+    const b = c.querySelector('button'), ps = c.querySelectorAll('p');
+    b.addEventListener('click', () => { const h = !ps[0].hidden; ps.forEach(p => p.hidden = h); b.textContent = h ? 'Show fact' : 'Hide fact'; });
+    fe.appendChild(c);
+  });
+
+  // Flip cards
+  const fl = document.getElementById('flips'), fl2 = document.getElementById('flips2');
+  D.FLIPS.forEach((f, k) => {
+    const b = document.createElement('button'); b.className = 'flip';
+    b.setAttribute('aria-label', 'Basic word ' + f[0] + '. Click to show the upgrade.');
+    b.innerHTML = '<div class="flip-inner"><div class="face front"><span class="w"></span><span class="hint">Click to upgrade</span></div><div class="face back"><span class="w"></span><span class="ex"></span></div></div>';
+    const ws = b.querySelectorAll('.w'); ws[0].textContent = f[0]; ws[1].textContent = f[1]; b.querySelector('.ex').textContent = f[2];
+    b.addEventListener('click', () => b.classList.toggle('flipped'));
+    (k < Math.ceil(D.FLIPS.length / 2) ? fl : fl2).appendChild(b);
+  });
+
+  // Generic match game
+  function matchGame(leftEl, rightEl, statusEl, resetBtn, pairs, leftText, rightText, doneText) {
+    let sel = null, matched = 0;
+    function build() {
+      leftEl.innerHTML = ''; rightEl.innerHTML = ''; sel = null; matched = 0; statusEl.textContent = ''; statusEl.className = 'status';
+      pairs.forEach((p, k) => {
+        const b = document.createElement('button'); b.className = 'chip'; b.textContent = leftText(p); b.dataset.k = k;
+        rubify(b, leftText(p));
+        b.addEventListener('click', () => { if (b.classList.contains('done')) return; leftEl.querySelectorAll('.chip').forEach(c => c.classList.remove('sel')); b.classList.add('sel'); sel = b; });
+        leftEl.appendChild(b);
+      });
+      pairs.map((p, k) => k).sort(() => Math.random() - .5).forEach(k => {
+        const b = document.createElement('button'); b.className = 'chip'; b.textContent = rightText(pairs[k]); b.dataset.k = k;
+        rubify(b, rightText(pairs[k]));
+        b.addEventListener('click', () => {
+          if (b.classList.contains('done')) return;
+          if (!sel) { statusEl.textContent = 'Choose from the left column first.'; statusEl.className = 'status no'; return; }
+          if (sel.dataset.k === b.dataset.k) {
+            sel.classList.remove('sel'); sel.classList.add('done'); b.classList.add('done');
+            if (doneText) { const t = doneText(pairs[k]); sel.textContent = t; rubify(sel, t); gloss(sel); }
+            matched++; sel = null;
+            statusEl.textContent = matched === pairs.length ? 'All matched!' : 'Correct!'; statusEl.className = 'status ok';
+          } else {
+            b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong');
+            statusEl.textContent = 'Not that one — try again.'; statusEl.className = 'status no';
+          }
+        });
+        rightEl.appendChild(b);
+      });
+    }
+    build(); resetBtn.addEventListener('click', build);
+  }
+  matchGame(document.getElementById('nouns'), document.getElementById('verbs'), document.getElementById('matchStatus'), document.getElementById('matchReset'),
+    D.PAIRS, p => p[0], p => '～' + p[1], p => '✓ ' + p[0] + p[1]);
+  matchGame(document.getElementById('ttOpen'), document.getElementById('ttType'), document.getElementById('ttStatus'), document.getElementById('ttReset'),
+    D.TTMATCH, p => p[1], p => p[0], null);
+
+  // Order game
+  const pool = document.getElementById('pool'), built = document.getElementById('built'), oStat = document.getElementById('orderStatus');
+  let chosen = [];
+  function buildOrder() {
+    pool.innerHTML = ''; built.innerHTML = ''; chosen = []; oStat.textContent = ''; oStat.className = 'status';
+    ['a', 'b', 'c', 'd', 'e'].forEach(letter => {
+      const s = D.ORDER.find(x => x[0] === letter);
+      const b = document.createElement('button'); b.className = 'sent'; b.textContent = '(' + s[0] + ') ' + s[2];
+      rubify(b, FURI[norm(s[2])] || []);
+      b.addEventListener('click', () => {
+        if (b.classList.contains('used')) return;
+        b.classList.add('used'); chosen.push(s);
+        const c = document.createElement('div'); c.className = 'sent';
+        c.innerHTML = '<span class="job"></span>'; c.querySelector('.job').textContent = chosen.length;
+        c.appendChild(document.createTextNode(s[2])); rubify(c, FURI[norm(s[2])] || []);
+        built.appendChild(c);
+      });
+      pool.appendChild(b);
+    });
+  }
+  buildOrder();
+  document.getElementById('orderReset').addEventListener('click', buildOrder);
+  document.getElementById('orderCheck').addEventListener('click', () => {
+    if (chosen.length < D.ORDER.length) { oStat.textContent = 'Place all five sentences first.'; oStat.className = 'status no'; return; }
+    let right = 0;
+    Array.from(built.children).forEach((c, k) => {
+      const ok = chosen[k] === D.ORDER[k]; if (ok) right++;
+      c.classList.toggle('good', ok); c.classList.toggle('bad', !ok);
+      c.querySelector('.job').textContent = (k + 1) + ' · ' + (ok ? '✓ ' + D.ORDER[k][1] : '✗ should be the ' + D.ORDER[k][1] + ' sentence');
+    });
+    oStat.textContent = right === 5 ? 'All in order: b → d → a → e → c' : right + ' of 5 in the right place.';
+    oStat.className = 'status ' + (right === 5 ? 'ok' : 'no');
+  });
+
+  // Paragraph builder
+  const picks = D.BANK.map(() => null);
+  const bEl = document.getElementById('builder'), bOut = document.getElementById('builderOut'), bStat = document.getElementById('builderStatus');
+  D.BANK.forEach((row, r) => {
+    const d = document.createElement('div'); d.className = 'brow';
+    d.innerHTML = '<span class="lab"></span>'; d.querySelector('.lab').textContent = row[0];
+    [1, 2].forEach(k => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = (k === 1 ? '① ' : '② ') + row[k];
+      rubify(b, FURI[norm(row[k])] || []); b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => {
+        picks[r] = k;
+        d.querySelectorAll('.opt').forEach(o => { o.classList.remove('on'); o.setAttribute('aria-pressed', 'false'); });
+        b.classList.add('on'); b.setAttribute('aria-pressed', 'true'); renderBuilder();
+      });
+      d.appendChild(b);
+    });
+    bEl.appendChild(d);
+  });
+  function renderBuilder() {
+    const text = picks.map((p, r) => p ? D.BANK[r][p] : '').filter(Boolean).join('');
+    bOut.textContent = '';
+    if (!text) { bOut.innerHTML = '<span class="muted">Choose one sentence for each job. Your paragraph appears here.</span>'; return; }
+    bOut.textContent = text;
+    rubify(bOut, [].concat(...picks.map((p, r) => p ? (FURI[norm(D.BANK[r][p])] || []) : [])));
+    if (picks[0] && picks[4]) {
+      if (picks[0] !== picks[4]) { bStat.textContent = 'Careful: your stance and link disagree. Which one do you really mean?'; bStat.className = 'status no'; }
+      else { bStat.textContent = 'Stance and link agree. Does every middle sentence support them?'; bStat.className = 'status ok'; }
+    } else { bStat.textContent = ''; }
+  }
+
+  // Label toggles
+  document.querySelectorAll('[data-label]').forEach(b => {
+    const base = b.textContent;
+    b.addEventListener('click', () => {
+      const on = document.getElementById(b.dataset.label).classList.toggle('show');
+      b.textContent = on ? base.replace('Show', 'Hide') : base; b.setAttribute('aria-pressed', String(on));
+    });
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    const wrap = t.closest('.slide');
+    wrap.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
+    wrap.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    t.classList.add('on'); t.setAttribute('aria-selected', 'true');
+    document.getElementById(t.dataset.tab).classList.add('on');
+  }));
+
+  // Checklists
+  document.querySelectorAll('.ck').forEach(c => {
+    c.setAttribute('aria-pressed', 'false');
+    c.addEventListener('click', () => { const on = c.classList.toggle('on'); c.querySelector('.box').textContent = on ? '✓' : ''; c.setAttribute('aria-pressed', String(on)); });
+  });
+
+  // Plan-race statements
+  const qEl = document.getElementById('quick'); let qi = 0;
+  document.getElementById('quickNext').addEventListener('click', () => {
+    if (qi >= D.PLANQ.length) return;
+    const d = document.createElement('div'); d.className = 'qa-item'; d.style.background = '#2C3A5A';
+    d.innerHTML = '<span class="n" style="color:var(--accent-soft);"></span><span class="q" style="color:var(--paper);"></span>';
+    d.querySelector('.n').textContent = qi + 1; d.querySelector('.q').textContent = D.PLANQ[qi];
+    rubify(d.querySelector('.q'), D.PLANQ[qi]); qEl.appendChild(d); qi++;
+  });
+
+  // Timers
+  const T = {};
+  document.querySelectorAll('[data-timer]').forEach(el => { T[el.dataset.timer] = { el, total: 300, left: 300, tick: null }; });
+  function draw(t) { const m = Math.floor(t.left / 60), s = t.left % 60; t.el.textContent = m + ':' + String(s).padStart(2, '0'); }
+  function stop(name) { const t = T[name]; clearInterval(t.tick); t.tick = null; document.querySelectorAll('[data-tgo="' + name + '"]').forEach(b => b.textContent = 'Start'); }
+  document.querySelectorAll('[data-tset]').forEach(b => b.addEventListener('click', () => {
+    const [name, secs] = b.dataset.tset.split(':'); stop(name); T[name].total = T[name].left = parseInt(secs, 10); draw(T[name]);
+  }));
+  document.querySelectorAll('[data-tgo]').forEach(b => b.addEventListener('click', () => {
+    const name = b.dataset.tgo, t = T[name];
+    if (t.tick) { stop(name); return; }
+    if (t.left <= 0) { t.left = t.total; draw(t); }
+    b.textContent = 'Pause';
+    t.tick = setInterval(() => { t.left--; draw(t); if (t.left <= 0) { stop(name); t.el.textContent = '0:00'; } }, 1000);
+  }));
+  document.querySelectorAll('[data-treset]').forEach(b => b.addEventListener('click', () => { const name = b.dataset.treset; stop(name); T[name].left = T[name].total; draw(T[name]); }));
+
+  // Furigana everywhere, with a switch on each slide and one for all slides
+  annotate(stage);
+  const allBtn = document.getElementById('furiAll');
+  function syncAll() { const on = slides.every(sl => sl.classList.contains('furi')); allBtn.textContent = on ? 'Furigana: all on' : 'Furigana: all off'; allBtn.setAttribute('aria-pressed', String(on)); }
+  function setSlide(sl, on) { sl.classList.toggle('furi', on); const b = sl.querySelector('.rbtn'); b.textContent = on ? 'ふりがな ON' : 'ふりがな OFF'; b.setAttribute('aria-pressed', String(on)); }
+  slides.forEach(sl => {
+    const b = document.createElement('button'); b.className = 'rbtn'; b.setAttribute('aria-label', 'Show furigana on this slide');
+    b.addEventListener('click', () => { setSlide(sl, !sl.classList.contains('furi')); syncAll(); });
+    sl.appendChild(b); setSlide(sl, false);
+  });
+  allBtn.addEventListener('click', () => { const on = !slides.every(sl => sl.classList.contains('furi')); slides.forEach(sl => setSlide(sl, on)); syncAll(); });
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'f' || e.key === 'F') { const sl = slides[cur]; setSlide(sl, !sl.classList.contains('furi')); syncAll(); }
+  });
+
+
+
+  // English glosses for vocabulary: one switch on each vocabulary slide, one for all
+  const EN = {"えらぶ": "to choose", "選択する": "to choose, select (formal)", "きめる": "to decide", "決断する": "to make a decision", "がんばる": "to try hard", "挑戦する": "to take on a challenge", "むずかしいこと": "something difficult", "困難": "difficulty, hardship", "うまくいかないこと": "things not going well", "挫折": "setback", "大きくなる": "to grow up", "成長する": "to grow, develop", "かわるとき": "a time of change", "転機": "turning point", "かわらない": "unchanging", "安定した": "stable, secure", "もう一度やる": "to do it again", "再挑戦する": "to try again", "ふあん": "worry", "将来への不安": "anxiety about the future", "夢": "dream", "視野": "outlook, horizons", "自分": "oneself", "一歩": "a step", "失敗": "failure", "～を乗り越える": "to overcome", "～を追う": "to chase", "～を広げる": "to broaden", "～を見つめ直す": "to re-examine, reflect on", "～を踏み出す": "to take (a step)", "～から学ぶ": "to learn from", "✓困難を乗り越える": "to overcome a difficulty", "✓夢を追う": "to chase a dream", "✓視野を広げる": "to broaden your horizons", "✓自分を見つめ直す": "to reflect on yourself", "✓一歩を踏み出す": "to take the first step", "✓失敗から学ぶ": "to learn from failure", "決断力・行動力・精神力・適応力": "decisiveness · drive to act · mental strength · adaptability", "転職者・移住者・留学者": "job changer · person who relocates · overseas student", "再挑戦・再出発・再発見": "another try · fresh start · rediscovery", "自己肯定感・自己実現・自己負担": "self-esteem · self-fulfilment · paying your own share", "早期離職・転職・地方移住・留学": "leaving a first job early · changing jobs · moving to the regions · studying abroad", "ひきこもり・失敗と再挑戦・支え": "social withdrawal · failure and trying again · support", "自己肯定感・自分らしい生き方": "self-esteem · living true to yourself", "早期離職": "leaving a first job early", "転職": "changing jobs", "地域おこし協力隊": "regional revitalisation volunteers", "留学": "studying abroad", "自己肯定感": "self-esteem", "ひきこもり": "social withdrawal", "選択": "choice", "困難を乗り越える": "overcoming adversity", "自分を見つめる": "looking at yourself"};
+  function enKey(t) { return String(t).replace(/（[ぁ-ん]+）/g, '').replace(/[\sA-Za-z~’'“”"?:]/g, ''); }
+  function enText(el) { const c = el.cloneNode(true); c.querySelectorAll('rt, .rbtn, .ebtn, .en, .tag, .iy').forEach(x => x.remove()); return c.textContent; }
+  function gloss(el, k) {
+    if (!el) return;
+    const old = el.querySelector(':scope > .en'); if (old) old.remove();
+    const g = EN[enKey(k === undefined ? enText(el) : k)]; if (!g) return;
+    const sp = document.createElement('span'); sp.className = 'en'; sp.textContent = g; el.appendChild(sp);
+  }
+  function glossAll(root) { root.querySelectorAll('.w, .chip, h3, p.small, .j.h3, .j.small').forEach(el => { if (!el.querySelector(':scope > .en')) gloss(el); }); }
+  glossAll(document.getElementById('stage'));
+  new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches && n.matches('.chip')) gloss(n); else if (n.querySelectorAll) glossAll(n); } })))
+    .observe(document.getElementById('stage'), { childList: true, subtree: true });
+  const enAll = document.getElementById('enAll');
+  const enSlides = () => slides.filter(sl => sl.querySelector('.en'));
+  function enSync() { const list = enSlides(); const on = list.length && list.every(sl => sl.classList.contains('en-on')); enAll.textContent = on ? 'English: all on' : 'English: all off'; enAll.setAttribute('aria-pressed', String(!!on)); }
+  function enSet(sl, on) { sl.classList.toggle('en-on', on); const b = sl.querySelector('.ebtn'); if (b) { b.textContent = on ? 'English ON' : 'English OFF'; b.setAttribute('aria-pressed', String(on)); } }
+  slides.forEach(sl => {
+    if (!sl.querySelector('.en')) return;
+    const b = document.createElement('button'); b.className = 'ebtn'; b.setAttribute('aria-label', 'Show English meanings on this slide');
+    b.addEventListener('click', () => { enSet(sl, !sl.classList.contains('en-on')); enSync(); });
+    sl.appendChild(b); enSet(sl, false);
+  });
+  enAll.addEventListener('click', () => { const list = enSlides(); const on = !list.every(sl => sl.classList.contains('en-on')); list.forEach(sl => enSet(sl, on)); enSync(); });
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'e' || e.key === 'E') { const sl = slides[cur]; if (sl.querySelector('.ebtn')) { enSet(sl, !sl.classList.contains('en-on')); enSync(); } }
+  });
+  (function () {
+    const fb = document.getElementById('fullBtn');
+    if (!fb) return;
+    fb.addEventListener('click', () => {
+      try {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => { fb.textContent = 'Full screen not available here'; }); }
+      } catch (e) { fb.textContent = 'Full screen not available here'; }
+    });
+    document.addEventListener('fullscreenchange', () => { fb.textContent = document.fullscreenElement ? '⛶ Exit full screen' : '⛶ Full screen'; setTimeout(() => window.dispatchEvent(new Event('resize')), 50); });
+  })();
+  fit();
+  const mh = /^#slide-(\d+[ab]?)$/.exec(location.hash);
+  show(mh && idxOf(mh[1]) >= 0 ? idxOf(mh[1]) : 0, false);
+  window.addEventListener('hashchange', () => { const h = /^#slide-(\d+[ab]?)$/.exec(location.hash); if (h && idxOf(h[1]) >= 0) show(idxOf(h[1]), false); });
+})();
+</script>
+</body>
+</html>
