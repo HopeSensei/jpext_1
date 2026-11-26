@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>つながり Connectedness Class Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: a fixed 1600x900 stage scaled to the window, one slide at a time, nav bar below. Single classroom theme. */
+:root {
+  --ink: #1F2A44;
+  --paper: #F7F3EC;
+  --paper-2: #EDE6DA;
+  --card: #FFFDF8;
+  --accent: #B23A26;
+  --accent-soft: #F2B8A6;
+  --muted: #4A5568;
+  --line: #D9CFBF;
+  --good: #2E6B3F;
+  --good-bg: #E3F0E4;
+  --warn-bg: #FBE7E1;
+  --t: #1E5A8C;
+  --e: #A34714;
+  --l: #5B3E8F;
+  --hl: #F6DFA8;
+  --display: 'Zen Maru Gothic', 'Noto Sans JP', 'Hiragino Sans', Arial, sans-serif;
+  --body: 'Noto Sans JP', 'Hiragino Sans', Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: #12192B;
+  color: var(--ink);
+  font-family: var(--body);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#viewport { flex: 1; position: relative; overflow: hidden; }
+#stage {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 1600px; height: 900px;
+  transform-origin: center center;
+}
+.slide {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  gap: 28px;
+  padding: 56px 88px;
+  background: var(--paper);
+  overflow: auto;
+}
+.slide.active { display: flex; }
+.slide.alt { background: var(--paper-2); }
+.slide.dark { background: var(--ink); color: var(--paper); }
+.slide.red { background: var(--accent); color: #FBF6EE; }
+.slide.center { justify-content: center; }
+
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: 84px; line-height: 1.25; }
+h2 { font-size: 54px; line-height: 1.2; }
+h3 { font-size: 32px; line-height: 1.3; }
+p { margin: 0; font-size: 28px; line-height: 1.6; }
+.eyebrow { font-size: 20px; font-weight: 700; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+.dark .eyebrow { color: var(--accent-soft); }
+.red .eyebrow { color: #FBE3D9; }
+.lead { font-size: 34px; line-height: 1.5; }
+.muted { color: var(--muted); }
+.dark .muted { color: #C9D3E3; }
+.red .muted { color: #FBE3D9; }
+.small { font-size: 22px; line-height: 1.5; }
+.big { font-family: var(--display); font-size: 110px; font-weight: 700; line-height: 1.15; }
+
+.row { display: flex; gap: 24px; }
+.grid { display: grid; gap: 20px; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g5 { grid-template-columns: repeat(5, 1fr); }
+.card { background: var(--card); border-radius: 12px; padding: 24px 28px; display: flex; flex-direction: column; gap: 10px; }
+.alt .card { background: var(--paper); }
+.dark .card { background: #2C3A5A; }
+.card .note { font-size: 22px; color: var(--muted); line-height: 1.5; }
+.dark .card .note { color: #C9D3E3; }
+.num { font-family: var(--display); font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1; }
+
+.model { background: var(--card); border-left: 10px solid var(--ink); border-radius: 8px; padding: 28px 36px; }
+.model p { font-size: 28px; line-height: 1.85; }
+.t-lab, .e-lab, .l-lab { font-weight: 400; transition: color .2s, background .2s; }
+.show-labels .t-lab { color: var(--t); font-weight: 700; }
+.show-labels .e-lab { color: var(--e); font-weight: 700; }
+.show-labels .l-lab { color: var(--l); font-weight: 700; }
+.tag { display: none; font-size: 18px; font-weight: 700; padding: 2px 8px; border-radius: 4px; color: #fff; margin-right: 6px; vertical-align: middle; }
+.show-labels .tag { display: inline-block; }
+.tag.t { background: var(--t); } .tag.e { background: var(--e); } .tag.l { background: var(--l); }
+.hl { background: var(--hl); }
+
+table { border-collapse: collapse; width: 100%; }
+th { font-size: 20px; text-align: left; padding: 12px 18px; background: var(--ink); color: var(--paper); }
+td { font-size: 24px; line-height: 1.5; padding: 12px 18px; border-bottom: 2px solid var(--line); vertical-align: top; }
+td.jp { font-weight: 700; }
+
+/* Controls */
+button { font-family: var(--body); cursor: pointer; }
+button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 4px solid #E3A33B; outline-offset: 2px; }
+.btn {
+  font-size: 20px; font-weight: 700;
+  padding: 10px 18px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--card); color: var(--ink);
+}
+.btn:hover { background: var(--ink); color: var(--paper); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: #8E2D1D; }
+.dark .btn { background: transparent; color: var(--paper); border-color: var(--paper); }
+
+.qa { display: flex; flex-direction: column; gap: 12px; }
+.qa-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 16px; align-items: start; background: var(--card); border-radius: 10px; padding: 14px 20px; }
+.alt .qa-item { background: var(--paper); }
+.qa-item .n { font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--accent); }
+.qa-item .q { font-size: 24px; line-height: 1.55; }
+.qa-item .a { grid-column: 2 / 4; font-size: 24px; line-height: 1.55; color: var(--good); font-weight: 700; display: none; }
+.qa-item.open .a { display: block; }
+.qa-item .tagline { font-size: 18px; color: var(--muted); font-weight: 400; }
+
+/* Flip cards */
+.flip { border: none; padding: 0; background: none; text-align: left; perspective: 1000px; height: 150px; }
+.flip-inner { position: relative; width: 100%; height: 100%; transition: transform .45s; transform-style: preserve-3d; }
+.flip.flipped .flip-inner { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.front { background: var(--card); border: 2px dashed var(--line); }
+.front .w { font-size: 34px; font-weight: 700; color: var(--ink); }
+.front .hint { font-size: 16px; color: var(--muted); }
+.back { background: var(--ink); color: var(--paper); transform: rotateY(180deg); }
+.back .w { font-size: 28px; font-weight: 700; font-family: var(--display); }
+.back .ex { font-size: 16px; line-height: 1.45; color: #DCE3EF; }
+
+/* Match game */
+.match { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.match .col { display: flex; flex-direction: column; gap: 8px; }
+.chip { font-size: 24px; font-weight: 700; padding: 9px 18px; border-radius: 10px; border: 3px solid var(--line); background: var(--card); color: var(--ink); text-align: left; }
+.chip.sel { border-color: var(--accent); background: var(--warn-bg); }
+.chip.done { border-color: var(--good); background: var(--good-bg); color: var(--good); cursor: default; }
+.chip.wrong { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.status { font-size: 24px; font-weight: 700; min-height: 36px; }
+.status.ok { color: var(--good); }
+.status.no { color: var(--accent); }
+
+/* Ordering */
+.pool, .built { display: flex; flex-direction: column; gap: 10px; }
+.sent { font-size: 20px; line-height: 1.45; text-align: left; padding: 9px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.sent.used { opacity: .35; cursor: default; }
+.built .sent { border-color: var(--ink); }
+.built .sent.good { border-color: var(--good); background: var(--good-bg); }
+.built .sent.bad { border-color: var(--accent); background: var(--warn-bg); }
+.job { font-size: 16px; font-weight: 700; color: var(--muted); display: block; }
+
+/* Builder */
+.brow { display: grid; grid-template-columns: 140px 1fr 1fr; gap: 12px; align-items: stretch; }
+.brow .lab { font-weight: 700; font-size: 22px; align-self: center; }
+.opt { font-size: 19px; line-height: 1.45; text-align: left; padding: 10px 14px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.opt.on { border-color: var(--ink); background: #E4EAF4; font-weight: 700; }
+.out { background: var(--card); border-left: 10px solid var(--accent); border-radius: 8px; padding: 18px 24px; font-size: 22px; line-height: 1.75; min-height: 120px; }
+
+/* Ladder */
+.ladder { display: flex; flex-direction: column; gap: 10px; }
+.rung { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 20px; border-radius: 10px; padding: 14px 20px; border: 2px solid var(--line); background: var(--card); text-align: left; color: var(--ink); }
+.rung .lv { font-weight: 700; font-size: 22px; }
+.rung .s { font-size: 26px; visibility: hidden; }
+.rung.on { border-color: var(--ink); }
+.rung.on .s { visibility: visible; }
+
+/* Tabs */
+.tabs { display: flex; gap: 10px; }
+.tab { font-size: 22px; font-weight: 700; padding: 10px 22px; border-radius: 10px 10px 0 0; border: 2px solid var(--ink); border-bottom: none; background: var(--paper-2); color: var(--ink); }
+.tab.on { background: var(--ink); color: var(--paper); }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* Checklist */
+.check { display: flex; flex-direction: column; gap: 10px; }
+.ck { display: flex; gap: 16px; align-items: center; font-size: 24px; text-align: left; padding: 12px 18px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--ink); }
+.ck .box { width: 34px; height: 34px; border-radius: 6px; border: 3px solid var(--ink); display: grid; place-items: center; font-weight: 700; flex: none; }
+.ck.on { border-color: var(--good); background: var(--good-bg); }
+.ck.on .box { background: var(--good); border-color: var(--good); color: #fff; }
+
+/* Plan grid */
+.plan { display: grid; grid-template-columns: 260px 1fr; gap: 10px 18px; align-items: center; }
+.plan label { font-size: 22px; font-weight: 700; }
+.plan textarea { font-family: var(--body); font-size: 20px; padding: 8px 12px; border: 2px solid var(--line); border-radius: 8px; background: var(--card); resize: none; height: 52px; }
+
+/* Timer */
+.timer { font-family: var(--display); font-size: 200px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+
+/* Stand line */
+.line-bar { flex: 1; height: 8px; background: var(--ink); border-radius: 4px; }
+
+/* Nav bar */
+nav {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: #12192B; color: #DCE3EF;
+  font-size: 15px;
+}
+nav .sp { flex: 1; }
+nav button { background: #2C3A5A; color: #F7F3EC; border: none; border-radius: 8px; padding: 8px 14px; font-size: 15px; font-weight: 700; }
+nav button:hover { background: #3C4D75; }
+nav select { font-family: var(--body); font-size: 15px; padding: 7px 10px; border-radius: 8px; background: #2C3A5A; color: #F7F3EC; border: none; max-width: 360px; }
+#count { font-variant-numeric: tabular-nums; min-width: 64px; text-align: center; }
+@media (max-width: 640px) { nav .hide-sm { display: none; } }
+
+/* Furigana: ruby readings over kanji, hidden unless the slide is switched on */
+ruby { ruby-position: over; }
+rt { font-size: .62em; font-weight: 500; letter-spacing: 0; color: inherit; opacity: .85; text-transform: none; }
+.slide:not(.furi) rt { display: none; }
+.slide.furi p, .slide.furi .q, .slide.furi .a, .slide.furi td, .slide.furi .opt, .slide.furi .sent, .slide.furi .chip, .slide.furi .ck { line-height: 2.3; }
+.slide.furi .model p { line-height: 2.55; }
+.slide.furi .flip { height: 210px; }
+.slide.furi .iy { display: none; }
+.rbtn { position: absolute; top: 16px; right: 22px; z-index: 5; font-size: 15px; font-weight: 700; padding: 6px 14px; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; opacity: .8; }
+.rbtn:hover { opacity: 1; }
+.slide.furi .rbtn { background: var(--accent); border-color: var(--accent); color: #fff; opacity: 1; }
+.red.furi .rbtn { background: #FBF6EE; border-color: #FBF6EE; color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .flip-inner { transition: none; } .chip.wrong { animation: none; } }
+
+/* Bigger classroom text */
+.slide { padding: 44px 64px; gap: 22px; }
+h1, .j.h1 { font-size: 92px; }
+h2 { font-size: 62px; }
+h3, .j.h3 { font-size: 38px; }
+p { font-size: 34px; }
+.eyebrow { font-size: 24px; }
+.lead { font-size: 42px; }
+.small { font-size: 29px; }
+.card .note { font-size: 27px; }
+.card { padding: 22px 26px; }
+.model { padding: 24px 32px; }
+.model p { font-size: 34px; }
+th { font-size: 25px; }
+td { font-size: 30px; }
+.qa-item { padding: 12px 18px; }
+.qa-item .q, .qa-item .a { font-size: 31px; }
+.qa-item .n { font-size: 30px; }
+.btn { font-size: 23px; }
+.chip { font-size: 31px; }
+.sent { font-size: 25px; }
+.job { font-size: 19px; }
+.opt { font-size: 24px; }
+.brow .lab { font-size: 25px; }
+.out { font-size: 27px; }
+.ck { font-size: 30px; }
+.rung .lv { font-size: 26px; }
+.rung .s { font-size: 32px; }
+.tab { font-size: 25px; }
+.plan label { font-size: 27px; }
+.plan textarea { font-size: 25px; height: 56px; }
+.flip { height: 170px; }
+.front .w { font-size: 40px; }
+.back .w { font-size: 32px; }
+.back .ex { font-size: 20px; }
+.front .hint { font-size: 18px; }
+.fact .fj { font-size: 27px; }
+.status { font-size: 27px; }
+.rbtn { font-size: 18px; }
+/* dense game slides keep a slightly smaller size so they fit */
+.pool .sent, .built .sent { font-size: 23px; padding: 7px 12px; }
+.pool, .built { gap: 7px; }
+#builder .opt { font-size: 22px; padding: 7px 12px; }
+#ttOpen .chip { font-size: 24px; padding: 7px 14px; }
+#ttType .chip { padding: 7px 14px; }
+
+/* English glosses for vocabulary */
+.en { display: none; font-family: var(--body); font-size: .55em; font-weight: 500; font-style: italic; letter-spacing: 0; text-transform: none; color: var(--muted); line-height: 1.3; margin-top: 4px; }
+.slide.en-on .en { display: block; }
+.dark .en, .red .en, .back .en, .dark .card .en { color: #C9D3E3; }
+.chip.done .en { color: var(--good); }
+.flip .en { font-size: 17px; }
+.ebtn { position: absolute; top: 16px; right: 210px; z-index: 5; font-size: 18px; font-weight: 700; padding: 6px 14px; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; opacity: .8; }
+.ebtn:hover { opacity: 1; }
+.slide.en-on .ebtn { background: var(--ink); border-color: var(--ink); color: #fff; opacity: 1; }
+.dark.en-on .ebtn { background: #F7F3EC; color: var(--ink); }
+
+.slide.en-on .chip .en { display: inline; margin: 0 0 0 14px; font-size: .62em; }
+
+.slide.en-on .front .hint { display: none; }
+.slide.en-on .flip { height: 190px; }
+.slide.en-on.furi .flip { height: 230px; }
+
+/* Upgrade-the-word cards split over two slides, so they can be bigger */
+.flips-big .flip { height: 250px; }
+.flips-big .face { padding: 20px 26px; gap: 10px; }
+.flips-big .front .w { font-size: 58px; }
+.flips-big .back .w { font-size: 44px; }
+.flips-big .back .ex { font-size: 26px; line-height: 1.45; }
+.flips-big .front .hint { font-size: 22px; }
+.flips-big .en { font-size: 22px; }
+.slide.en-on .flips-big .flip { height: 280px; }
+.slide.furi .flips-big .flip { height: 290px; }
+.slide.en-on.furi .flips-big .flip { height: 300px; }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+<!-- 1 Cover -->
+<section class="slide dark center" data-lesson="Start">
+  <p class="eyebrow">Japanese Extension · Connectedness つながり</p>
+  <h1>語彙から段落へ</h1>
+  <p class="lead muted">From vocabulary to persuasive paragraphs · 4 weeks · 8 lessons</p>
+  <div class="grid g4" style="margin-top:24px;">
+    <button class="btn" data-goto="2">Week 1 · Lesson 1</button>
+    <button class="btn" data-goto="6">Week 1 · Lesson 2</button>
+    <button class="btn" data-goto="9">Week 2 · Lesson 3</button>
+    <button class="btn" data-goto="12">Week 2 · Lesson 4</button>
+    <button class="btn" data-goto="17">Week 3 · Lesson 5</button>
+    <button class="btn" data-goto="20">Week 3 · Lesson 6</button>
+    <button class="btn" data-goto="23">Week 4 · Lesson 7</button>
+    <button class="btn" data-goto="29">Week 4 · Lesson 8</button>
+  </div>
+  <p class="small muted">Use ← → or the buttons below. Anything that looks like a button can be clicked. Press F or use the ふりがな button to show furigana.</p>
+</section>
+
+<!-- 2 Hook -->
+<section class="slide red center" data-lesson="Lesson 1 · Hook + vocabulary">
+  <p class="eyebrow">Week 1 · Lesson 1 · Hook</p>
+  <h1>家族を作るのは、<br>血（ち）か、時間か。</h1>
+  <div class="row" style="align-items:center; gap:32px; margin-top:16px;">
+    <p class="big" style="font-size:90px;">血</p><div class="line-bar" style="background:#FBF6EE;"></div><p class="big" style="font-size:90px;">時間</p>
+  </div>
+  <p class="lead">立ってみよう：私は（血・時間）の方が大切だと思う。なぜなら、～からだ。</p>
+</section>
+
+<!-- 3 Strands -->
+<section class="slide alt" data-lesson="Lesson 1 · Hook + vocabulary">
+  <p class="eyebrow">Week 1 · Lesson 1 · Connectedness</p>
+  <h2>The film asks the question. Japanese society gives the evidence.</h2>
+  <div class="grid g3">
+    <div class="card"><h3>居場所（いばしょ）</h3><p class="note">Belonging</p><p class="small">孤独・ひとり暮らし・不登校・こども食堂</p></div>
+    <div class="card"><h3>親になること</h3><p class="note">Parenthood</p><p class="small">男性の育休・共働き・長時間労働</p></div>
+    <div class="card"><h3>親子（おやこ）関係</h3><p class="note">Child–parent relationships</p><p class="small">核家族化・親の期待・家族の形</p></div>
+  </div>
+  <p class="lead">This term: <b>words → sentences → paragraphs</b> about Japan today.</p>
+</section>
+
+<!-- 4 Upgrade cards -->
+<section class="slide" data-lesson="Lesson 1 · Hook + vocabulary">
+  <p class="eyebrow">Week 1 · Lesson 1 · Upgrade the word (1 of 2)</p>
+  <h2>Guess the upgrade, then flip the card</h2>
+  <div class="grid g3 flips-big" id="flips"></div>
+</section>
+
+<!-- 4b Upgrade cards, part 2 -->
+<section class="slide cont" data-lesson="Lesson 1 · Hook + vocabulary">
+  <p class="eyebrow">Week 1 · Lesson 1 · Upgrade the word (2 of 2)</p>
+  <h2>Guess the upgrade, then flip the card</h2>
+  <div class="grid g3 flips-big" id="flips2"></div>
+</section>
+
+<!-- 5 Activity 1 upgrade -->
+<section class="slide alt" data-lesson="Lesson 1 · Hook + vocabulary">
+  <p class="eyebrow">Week 1 · Activity 1</p>
+  <h2>Upgrade it</h2>
+  <div class="qa" data-qa='[
+    ["ひとり暮らしの人が［ふえている］。","ひとり暮らしの人が増加している。"],
+    ["親の愛情は子どもにとって［大切だ］。","親の愛情は子どもにとって欠かせない。"],
+    ["地域の大人が子どもを［助けている］。","地域の大人が子どもを支えている。"],
+    ["孤独は日本の大きな［問題］だ。","孤独は日本の大きな課題だ。"],
+    ["父親の役割が［変わってきた］。","父親の役割が変わりつつある。"]]'></div>
+  <p class="small muted">Exit ticket: one sentence about Japan using 課題 or 増加する.</p>
+</section>
+
+<!-- 6 Collocation match -->
+<section class="slide" data-lesson="Lesson 2 · Collocations + word families">
+  <p class="eyebrow">Week 1 · Lesson 2 · Collocations</p>
+  <h2>Which verb goes with which noun?</h2>
+  <p class="small muted">Click a noun, then the verb that goes with it.</p>
+  <div class="match" id="match">
+    <div class="col" id="nouns"></div>
+    <div class="col" id="verbs"></div>
+  </div>
+  <p class="status" id="matchStatus" role="status"></p>
+  <div><button class="btn" id="matchReset">Reset</button></div>
+</section>
+
+<!-- 7 Word families -->
+<section class="slide alt" data-lesson="Lesson 2 · Collocations + word families">
+  <p class="eyebrow">Week 1 · Lesson 2 · Word families</p>
+  <h2>One suffix, many essay words</h2>
+  <div class="grid g4">
+    <div class="card"><h3>～化（か）</h3><p class="note">becoming ~</p><button class="btn" data-show="wf1">Show examples</button><p class="small" id="wf1" hidden>少子化・高齢化・核家族化・多様化</p></div>
+    <div class="card"><h3>～感（かん）</h3><p class="note">a feeling of ~</p><button class="btn" data-show="wf2">Show examples</button><p class="small" id="wf2" hidden>孤独感・安心感・責任感・一体感</p></div>
+    <div class="card"><h3>～性（せい）</h3><p class="note">the quality of ~</p><button class="btn" data-show="wf3">Show examples</button><p class="small" id="wf3" hidden>必要性・重要性・多様性</p></div>
+    <div class="card"><h3>～的（てき）</h3><p class="note">~-al, ~-ic</p><button class="btn" data-show="wf4">Show examples</button><p class="small" id="wf4" hidden>経済的・精神的・社会的</p></div>
+  </div>
+  <h3>Activity 3 · Family builder</h3>
+  <div class="qa grid g2" data-qa='[
+    ["安心 → ?","安心感：こども食堂は、子どもに安心感をあたえている。"],
+    ["多様 → ?","多様化：家族の形が多様化している。"],
+    ["重要 → ?","重要性：地域のつながりの重要性が高まっている。"],
+    ["高齢 → ?","高齢化：高齢化によって、ひとり暮らしの高齢者が増加している。"]]'></div>
+</section>
+
+<!-- 8 Vocab log -->
+<section class="slide" data-lesson="Lesson 2 · Collocations + word families">
+  <p class="eyebrow">Week 1 · Activity 4</p>
+  <h2>Start your vocabulary log</h2>
+  <p class="lead">10 words a week. A word only counts once you've used it in a sentence.</p>
+  <table>
+    <tr><th>Word</th><th>Reading</th><th>Meaning</th><th>Goes with…</th><th>My sentence</th></tr>
+    <tr><td class="jp">課題</td><td>かだい</td><td>challenge, issue</td><td>～に向き合う</td><td>孤独は現代社会の大きな課題だ。</td></tr>
+    <tr><td class="jp">支える</td><td>ささえる</td><td>to support</td><td>子どもを～</td><td>地域の大人が子どもを支えている。</td></tr>
+    <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  </table>
+  <p class="small muted">Pair quiz: cover the Japanese column and test each other.</p>
+</section>
+
+<!-- 9 Five facts -->
+<section class="slide alt" data-lesson="Lesson 3 · Facts + expanding">
+  <p class="eyebrow">Week 2 · Lesson 3 · Evidence</p>
+  <h2>Five facts about Japan today</h2>
+  <div class="grid g5" id="facts"></div>
+  <p class="small muted">Note each fact in Japanese and the strand it fits. Sources are in the student guide's evidence bank.</p>
+</section>
+
+<!-- 10 Expand step by step -->
+<section class="slide" data-lesson="Lesson 3 · Facts + expanding">
+  <p class="eyebrow">Week 2 · Lesson 3 · Move 1</p>
+  <h2>Grow a bare sentence</h2>
+  <div class="model"><p id="expandOut">父親が育休をとる。</p></div>
+  <div class="row">
+    <button class="btn" data-expand="0">Bare</button>
+    <button class="btn" data-expand="1">+ when</button>
+    <button class="btn" data-expand="2">+ how much</button>
+    <button class="btn" data-expand="3">+ why</button>
+  </div>
+  <p class="small muted" id="expandNote">Start bare. Each click adds one layer.</p>
+</section>
+
+<!-- 11 Activity 1 expand -->
+<section class="slide alt" data-lesson="Lesson 3 · Facts + expanding">
+  <p class="eyebrow">Week 2 · Activity 1</p>
+  <h2>Expand: when → how much → why</h2>
+  <div class="qa" data-qa='[
+    ["ひとり暮らしが増えている。","未婚化や高齢化によって、ひとり暮らしの世帯は増加しており、2050年には全体の4割以上になると言われている。"],
+    ["こども食堂がある。","共働きの家庭が多い中、地域の大人が運営するこども食堂は、全国で1万2千か所以上に増加した。"],
+    ["学校に行けない子どもがいる。","2024年度、学校に行けない小中学生は過去最多の35万人をこえ、約26人に1人になった。"]]'></div>
+  <p class="small muted">One possible answer each. Yours may be different and still correct.</p>
+</section>
+
+<!-- 12 Connectors -->
+<section class="slide" data-lesson="Lesson 4 · Combining + certainty">
+  <p class="eyebrow">Week 2 · Lesson 4 · Move 2</p>
+  <h2>Extension connectors</h2>
+  <div class="qa" data-qa='[
+    ["～だけでなく、～も　<span class=\"tagline\">not only ~ but also</span>","親だけでなく、地域も子どもを支えている。"],
+    ["～にもかかわらず　<span class=\"tagline\">despite ~</span>","いっしょに住んでいるにもかかわらず、会話の少ない家族もいる。"],
+    ["～ことによって　<span class=\"tagline\">by doing ~</span>","いっしょに食事をすることによって、きずなが深まる。"],
+    ["～一方（で）　<span class=\"tagline\">while ~</span>","育休をとる父親が増えた一方で、女性とのさはまだ大きい。"],
+    ["～につれて　<span class=\"tagline\">as ~ changes</span>","社会が変化するにつれて、家族の形も変わりつつある。"],
+    ["～からといって、～とはかぎらない　<span class=\"tagline\">just because ~</span>","ひとり暮らしだからといって、孤独だとはかぎらない。"]]'></div>
+</section>
+
+<!-- 13 Combine -->
+<section class="slide alt" data-lesson="Lesson 4 · Combining + certainty">
+  <p class="eyebrow">Week 2 · Activity 2</p>
+  <h2>Combine each pair</h2>
+  <div class="qa" data-qa='[
+    ["育休をとる父親が増えた。女性とのさはまだ大きい。（～一方で）","育休をとる父親が増えた一方で、女性とのさはまだ大きい。"],
+    ["こども食堂は子どもに食事をあたえる。居場所もあたえる。（～だけでなく）","こども食堂は子どもに食事だけでなく、居場所もあたえている。"],
+    ["ひとり暮らしの人が増えている。孤独を感じる人も増えている。（～につれて）","ひとり暮らしの人が増えるにつれて、孤独を感じる人も増えている。"],
+    ["家族といっしょに食事をする。きずなが深まる。（～ことによって）","家族といっしょに食事をすることによって、きずなが深まる。"],
+    ["政府は対策を進めている。孤独を感じる人はまだ多い。（～にもかかわらず）","政府が対策を進めているにもかかわらず、孤独を感じる人はまだ多い。"]]'></div>
+</section>
+
+<!-- 14 Certainty ladder -->
+<section class="slide" data-lesson="Lesson 4 · Combining + certainty">
+  <p class="eyebrow">Week 2 · Lesson 4 · Move 4</p>
+  <h2>How sure are you? Click a level.</h2>
+  <div class="ladder">
+    <button class="rung"><span class="lv">100%</span><span class="s">孤独を感じる人が増えている<b>のは事実だ</b>。</span></button>
+    <button class="rung"><span class="lv">Very likely</span><span class="s">孤独を感じる人はさらに増える<b>だろう</b>。</span></button>
+    <button class="rung"><span class="lv">Possible</span><span class="s">孤独を感じる人はさらに増える<b>かもしれない</b>。</span></button>
+    <button class="rung"><span class="lv">Not necessarily</span><span class="s">ひとり暮らしの人が孤独だ<b>とはかぎらない</b>。</span></button>
+    <button class="rung"><span class="lv">0%</span><span class="s">孤独の問題が解決した<b>とは言えない</b>。</span></button>
+  </div>
+  <p class="small muted">Activity 3: write 「父親の役割は変わる」 at three levels.</p>
+</section>
+
+<!-- 15 Fix it -->
+<section class="slide alt" data-lesson="Lesson 4 · Combining + certainty">
+  <p class="eyebrow">Week 2 · Activity 4</p>
+  <h2>Find the problem before you reveal it</h2>
+  <div class="qa" data-qa='[
+    ["私は強くさんせいします。なぜなら、時間が大切だからだ。","Register mix → 私は強くさんせいする。なぜなら、時間が大切だからだ。"],
+    ["孤独を感じる人が多いです。","Register for an essay → 孤独を感じる人が多い。"],
+    ["子どもが居場所がない。","Particle → 子どもに居場所がない。（居場所のない子どもがいる。）"],
+    ["育休は大切だと思う。家族も大切だと思う。子どもも大切だと思う。","Repetition → 育休は、家族にとっても子どもにとっても欠かせない。"],
+    ["不登校の子どもは増えている。それは悪い。","No explanation → これは、学校に居場所がないと感じる子どもが多いことをあらわしているのかもしれない。"]]'></div>
+</section>
+
+<!-- 16 Translate -->
+<section class="slide" data-lesson="Lesson 4 · Combining + certainty">
+  <p class="eyebrow">Week 2 · Activity 5</p>
+  <h2>Translate with a Week 2 connector</h2>
+  <div class="qa" data-qa='[
+    ["Not only parents but also the local community supports children.","親だけでなく、地域も子どもを支えている。"],
+    ["As society changes, the meaning of “family” is also changing.","社会が変化するにつれて、「家族」の意味も変わりつつある。"],
+    ["Despite living together, some families have little time to talk.","いっしょに住んでいるにもかかわらず、会話の少ない家族もいる。"],
+    ["Just because you live alone doesn’t necessarily mean you are lonely.","ひとり暮らしだからといって、孤独だとはかぎらない。"]]'></div>
+</section>
+
+<!-- 17 Five jobs -->
+<section class="slide alt" data-lesson="Lesson 5 · Sentence jobs + cohesion">
+  <p class="eyebrow">Week 3 · Lesson 5</p>
+  <h2>Every sentence has a job</h2>
+  <div class="grid g5">
+    <div class="card"><p class="num">1</p><h3>Stance</h3><p class="small">「～」という考え方に、</p><p class="note">Thesis (T)</p></div>
+    <div class="card"><p class="num">2</p><h3>Context</h3><p class="small">現代の日本では、</p><p class="note">Example (E)</p></div>
+    <div class="card"><p class="num">3</p><h3>Evidence</h3><p class="small">たとえば、～によると、</p><p class="note">Example (E)</p></div>
+    <div class="card"><p class="num">4</p><h3>Meaning</h3><p class="small">こうした～で、この事から、</p><p class="note">Example (E)</p></div>
+    <div class="card"><p class="num">5</p><h3>Link</h3><p class="small">つまり、このように、</p><p class="note">Link (L)</p></div>
+  </div>
+  <p class="lead">Each sentence <b>does a job</b> and <b>links to the one before</b>.</p>
+</section>
+
+<!-- 18 Order game -->
+<section class="slide" data-lesson="Lesson 5 · Sentence jobs + cohesion">
+  <p class="eyebrow">Week 3 · Activity 1</p>
+  <h2>Put it in order</h2>
+  <p class="small muted">Statement: 「子どもをそだてるのは、親だけの責任ではない」 — click the sentences in order.</p>
+  <div class="grid g2" style="align-items:start;">
+    <div class="pool" id="pool"></div>
+    <div class="built" id="built"></div>
+  </div>
+  <div class="row" style="align-items:center;"><button class="btn primary" id="orderCheck">Check</button><button class="btn" id="orderReset">Reset</button><p class="status" id="orderStatus" role="status"></p></div>
+</section>
+
+<!-- 19 Glue -->
+<section class="slide alt" data-lesson="Lesson 5 · Sentence jobs + cohesion">
+  <p class="eyebrow">Week 3 · Activity 2</p>
+  <h2>Glue it: point back, don't repeat</h2>
+  <div class="row small"><span class="card" style="flex:1;"><b>この～・その～</b> the thing just mentioned</span><span class="card" style="flex:1;"><b>こうした～</b> things of this kind</span><span class="card" style="flex:1;"><b>その結果</b> the result of what came before</span></div>
+  <div class="model"><p style="font-size:24px;">男性の育休取得率は約40%になった。［男性の育休取得率］は、父親の意識が変わってきたことをあらわしている。会社も父親が育休をとりやすい制度を作っている。［会社の制度や父親の意識の変化］によって、父親と子どもがいっしょに過ごす時間が増えた。</p></div>
+  <div class="qa" data-qa='[["Show a model answer","男性の育休取得率は約40%になった。この数字は、父親の意識が変わってきたことをあらわしている。会社も父親が育休をとりやすい制度を作っている。こうした変化によって（その結果、）父親と子どもがいっしょに過ごす時間が増えた。"]]'></div>
+</section>
+
+<!-- 20 Builder -->
+<section class="slide" data-lesson="Lesson 6 · Building a paragraph">
+  <p class="eyebrow">Week 3 · Lesson 6 · Activity 3</p>
+  <h2>Build from the bank</h2>
+  <div style="display:flex; flex-direction:column; gap:8px;" id="builder"></div>
+  <div class="out" id="builderOut"><span class="muted">Choose one sentence for each job. Your paragraph appears here.</span></div>
+  <p class="status" id="builderStatus" role="status"></p>
+</section>
+
+<!-- 21 Dictogloss -->
+<section class="slide alt" data-lesson="Lesson 6 · Building a paragraph">
+  <p class="eyebrow">Week 3 · Activity 4</p>
+  <h2>Dictogloss</h2>
+  <div class="grid g3">
+    <div class="card"><p class="num">1</p><h3>Listen</h3><p class="note">Teacher reads twice. Write key words only.</p></div>
+    <div class="card"><p class="num">2</p><h3>Rebuild</h3><p class="note">With a partner, rewrite the whole paragraph.</p></div>
+    <div class="card"><p class="num">3</p><h3>Compare</h3><p class="note">Which glue words and connectors did you miss?</p></div>
+  </div>
+  <div class="qa" data-qa='[["Reveal the paragraph","「ひとり暮らしは孤独につながる」という考え方に、私はある程度さんせいする。現代の日本では、ひとり暮らしの世帯が増加しており、2050年には全体の4割以上になると言われている。たしかに、家族と話す機会が少なければ、孤独を感じやすくなるだろう。しかし、ひとり暮らしだからといって、孤独だとはかぎらない。つまり、大切なのは住み方ではなく、人とのつながりを持ち続けることなのだ。"]]'></div>
+</section>
+
+<!-- 22 Your own five -->
+<section class="slide" data-lesson="Lesson 6 · Building a paragraph">
+  <p class="eyebrow">Week 3 · Activity 5</p>
+  <h2>Your own five sentences</h2>
+  <p class="lead">「親は子どもの一番の友達であるべきだ。」</p>
+  <p class="small muted">One sentence per job: Stance → Context → Evidence → Meaning → Link. Check as a class:</p>
+  <div class="check">
+    <button class="ck"><span class="box"></span>Stance and link use the statement's keywords</button>
+    <button class="ck"><span class="box"></span>At least two Week 1 words</button>
+    <button class="ck"><span class="box"></span>At least one Week 2 connector</button>
+    <button class="ck"><span class="box"></span>A glue word (この・こうした・その結果)</button>
+    <button class="ck"><span class="box"></span>Plain form（だ・である）throughout</button>
+  </div>
+</section>
+
+<!-- 23 Model 1 labels -->
+<section class="slide alt" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7 · Model 1</p>
+  <h2>Find the T, E and L</h2>
+  <p class="small muted">Statement: 「親子のきずなには、いっしょに過ごす時間が一番大切だ。」</p>
+  <div class="model" id="m1"><p><span class="t-lab"><span class="tag t">T</span>「親子（おやこ）のきずなには、いっしょに過（す）ごす時間が一番大切だ」という考え方に、私は強くさんせいする。</span><span class="e-lab"><span class="tag e">E</span>さいきん日本では、父親もこそだてにかかわるようになった。たとえば、男性の育児休業取得率（いくじきゅうぎょうしゅとくりつ）は、五年前は約12%だったが、今は約40%に増えたそうだ。父親が子どもと毎日いっしょにいれば、子どもの気持ちがよく分かるようになるだろう。</span><span class="l-lab"><span class="tag l">L</span>このように、親子のきずなを作るのは、お金や血（ち）ではなく、いっしょに過ごす時間だと言える。</span></p></div>
+  <div class="row" style="align-items:center;"><button class="btn primary" id="labelToggle" aria-pressed="false">Show labels</button><p class="small muted">T = job 1 · E = jobs 2–4 · L = job 5</p></div>
+</section>
+
+<!-- 24 Stance phrases -->
+<section class="slide" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7</p>
+  <h2>Choose your stance</h2>
+  <table>
+    <tr><th>Stance</th><th>「～」という考え方に、私は…</th></tr>
+    <tr><td>Strongly agree</td><td class="jp">強くさんせいする。</td></tr>
+    <tr><td>Mostly agree</td><td class="jp">ある程度（ていど）さんせいする。</td></tr>
+    <tr><td>Balanced</td><td class="jp">さんせいするが、はんたいの意見もりかいできる。</td></tr>
+    <tr><td>Disagree</td><td class="jp">はんたいする。</td></tr>
+  </table>
+</section>
+
+<!-- 25 So what -->
+<section class="slide dark center" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7</p>
+  <p class="big">「不登校は35万人だ。」</p>
+  <h2 style="color:var(--accent-soft);">So what?</h2>
+  <p class="lead muted">A fact is not an argument until you say what it shows.</p>
+</section>
+
+<!-- 26 Models 2 + 3 -->
+<section class="slide alt" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7 · Models 2 and 3</p>
+  <h2>Two more ways to argue</h2>
+  <div>
+    <div class="tabs" role="tablist">
+      <button class="tab on" role="tab" aria-selected="true" data-tab="p2">Model 2 · Disagree</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="p3">Model 3 · Balanced</button>
+    </div>
+    <div class="model panel on" id="p2"><p style="font-size:24px;">「現代（げんだい）の子どもにとって、居場所（いばしょ）は家族と学校だけで十分だ」という意見に、私ははんたいする。<span class="hl">たしかに</span>、家族と学校は子どもにとって大切な場所だ。<span class="hl">しかし</span>、文部科学省（もんぶかがくしょう）の調査によると、学校に行けない小中学生は35万人をこえ、過去最多（かこさいた）になった。<span class="hl">一方で</span>、地域（ちいき）の大人が作る「こども食堂」は全国で1万2千か所以上に増えている。<span class="hl">つまり</span>、家族と学校のほかにも、子どもをうけ入れてくれる場所がひつようなのだ。</p></div>
+    <div class="model panel" id="p3"><p style="font-size:24px;">「日本では、人と人とのつながりがよわくなっている」という考え方に、私はある程度さんせいするが、はんたいの意見もりかいできる。たしかに、日本人の約4割が孤独（こどく）を感じているそうだ。ひとり暮（ぐ）らしの家庭もますます増え、2050年には全体の4割以上になると言われている。そのはんめん、こども食堂のように、地域で新しいつながりを作る動（うご）きも広（ひろ）がっている。<span class="hl">したがって、つながりは「なくなっている」というより、形が変わっているのだと思う。</span></p></div>
+  </div>
+  <p class="small muted">Model 2: how does たしかに～。しかし、 work? Model 3: why is the link stronger than repeating the thesis?</p>
+</section>
+
+<!-- 27 Fix the paragraph -->
+<section class="slide" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7 · Stage 1 Task 3</p>
+  <h2>Fix this paragraph</h2>
+  <p class="small muted">Statement: 「現代の日本では、家族のつながりがよわくなっている。」</p>
+  <div class="model" style="border-left-color:var(--accent);"><p>ひとり暮らしは増えている。2020年は38%だった。2050年は44%になる。ひとり暮らしは楽だと思う。</p></div>
+  <div class="qa" data-qa='[
+    ["Problem 1?","No T: no stance and none of the statement’s keywords."],
+    ["Problem 2?","No meaning: three facts, but no “so what”."],
+    ["Problem 3?","No L: the last sentence goes off-topic instead of answering the statement."]]'></div>
+</section>
+
+<!-- 28 Plan grid -->
+<section class="slide alt" data-lesson="Lesson 7 · T–E–L + redraft">
+  <p class="eyebrow">Week 4 · Lesson 7 · Redraft</p>
+  <h2>Plan, then redraft 150–200字</h2>
+  <div class="plan">
+    <label for="pl1">Statement keywords</label><textarea id="pl1"></textarea>
+    <label for="pl2">My stance</label><textarea id="pl2"></textarea>
+    <label for="pl3">Social fact</label><textarea id="pl3"></textarea>
+    <label for="pl4">Hypothetical or anecdote</label><textarea id="pl4"></textarea>
+    <label for="pl5">What it shows</label><textarea id="pl5"></textarea>
+    <label for="pl6">Link sentence</label><textarea id="pl6"></textarea>
+  </div>
+  <p class="small muted">Model a plan with the class here. It is not saved when the page reloads.</p>
+</section>
+
+<!-- 29 Depth -->
+<section class="slide" data-lesson="Lesson 8 · Depth + timed paragraph">
+  <p class="eyebrow">Week 4 · Lesson 8 · Stage 2</p>
+  <h2>Four ways to go deeper</h2>
+  <div class="grid g2">
+    <div class="card"><h3>Counter-view</h3><p class="note">Admit the other side, then answer it</p><button class="btn" data-show="d1">Example</button><p class="small" id="d1" hidden>とはいえ、役割が「大きく」変わったとは言えないかもしれない。</p></div>
+    <div class="card"><h3>Define the keyword</h3><p class="note">What does it really mean?</p><button class="btn" data-show="d2">Example</button><p class="small" id="d2" hidden>では、本当の「居場所」とは何だろうか。</p></div>
+    <div class="card"><h3>Compare societies</h3><p class="note">Set Japan beside Australia</p><button class="btn" data-show="d3">Example</button><p class="small" id="d3" hidden>私の住むオーストラリアでは、～。日本とちがって、～。</p></div>
+    <div class="card"><h3>Look ahead</h3><p class="note">What should change?</p><button class="btn" data-show="d4">Example</button><p class="small" id="d4" hidden>長時間働く会社が変わらなければ、父親の時間は増えないだろう。</p></div>
+  </div>
+</section>
+
+<!-- 30 Quick-fire -->
+<section class="slide dark" data-lesson="Lesson 8 · Depth + timed paragraph">
+  <p class="eyebrow">Week 4 · Lesson 8 · Quick-fire</p>
+  <h2>Stance + one example. 20 seconds.</h2>
+  <div class="qa" id="quick"></div>
+  <div class="row"><button class="btn" id="quickNext">Next statement</button><button class="btn" id="quickReset">Reset</button></div>
+  <p class="small muted">Answer frame: 私は（さんせい・はんたい）だ。たとえば、～。</p>
+</section>
+
+<!-- 31 Timer -->
+<section class="slide red center" data-lesson="Lesson 8 · Depth + timed paragraph">
+  <p class="eyebrow">Week 4 · Lesson 8 · Timed paragraph</p>
+  <div class="row" style="align-items:center; gap:56px;">
+    <p class="timer" id="timer">5:00</p>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <button class="btn" data-time="300">Plan · 5 min</button>
+      <button class="btn" data-time="1200">Write · 20 min</button>
+      <button class="btn" id="timerGo">Start</button>
+      <button class="btn" id="timerReset">Reset</button>
+    </div>
+  </div>
+  <p class="lead" id="timerLabel">Plan: keywords · stance · one fact · what it shows · link</p>
+  <p class="small muted">Statement: your teacher chooses an unseen one from the guide's paragraph questions.</p>
+</section>
+
+<!-- 32 Self-check -->
+<section class="slide alt" data-lesson="Lesson 8 · Depth + timed paragraph">
+  <p class="eyebrow">Week 4 · Lesson 8 · Self-check</p>
+  <h2>Before you hand in</h2>
+  <div class="row" style="align-items:start;">
+    <div class="check" style="flex:3;">
+      <button class="ck"><span class="box"></span>My stance is clear in the first sentence</button>
+      <button class="ck"><span class="box"></span>The statement's keywords are in my T and L</button>
+      <button class="ck"><span class="box"></span>I used a real social fact and said what it shows</button>
+      <button class="ck"><span class="box"></span>I used extension vocabulary and a Week 2 connector</button>
+      <button class="ck"><span class="box"></span>My sentences link with glue words</button>
+      <button class="ck"><span class="box"></span>Plain form（だ・である）throughout</button>
+    </div>
+    <div class="card" style="flex:2;"><h3>Two targets for next term</h3><p class="small">1. ＿＿＿＿＿＿＿＿</p><p class="small">2. ＿＿＿＿＿＿＿＿</p><p class="note">Next term: the 600字 essay.</p></div>
+  </div>
+</section>
+
+</div></div>
+
+<nav aria-label="Slide navigation">
+  <button id="prev" aria-label="Previous slide">← Prev</button>
+  <span id="count" aria-live="polite">1 / 32</span>
+  <button id="next" aria-label="Next slide">Next →</button>
+  <button id="furiAll" aria-pressed="false" title="Shortcut: F">Furigana: all off</button>
+  <button id="fullBtn" title="Full screen">⛶ Full screen</button>
+  <button id="enAll" aria-pressed="false" title="Shortcut: E">English: all off</button>
+  <span class="sp"></span>
+  <label class="hide-sm" for="jump">Jump to</label>
+  <select id="jump"></select>
+</nav>
+
+<script>
+(function () {
+  const FURI = {"ひとり暮らしの人が［ふえている］。": ["ぐ", "ひと"], "ひとり暮らしの人が増加している。": ["ぐ", "ひと", "ぞうか"], "親の愛情は子どもにとって［大切だ］。": ["おや", "あいじょう", "こ", "たいせつ"], "親の愛情は子どもにとって欠かせない。": ["おや", "あいじょう", "こ", "か"], "地域の大人が子どもを［助けている］。": ["ちいき", "おとな", "こ", "たす"], "地域の大人が子どもを支えている。": ["ちいき", "おとな", "こ", "ささ"], "孤独は日本の大きな［問題］だ。": ["こどく", "にほん", "おお", "もんだい"], "孤独は日本の大きな課題だ。": ["こどく", "にほん", "おお", "かだい"], "父親の役割が［変わってきた］。": ["ちちおや", "やくわり", "か"], "父親の役割が変わりつつある。": ["ちちおや", "やくわり", "か"], "安心→": ["あんしん"], "安心感：こども食堂は、子どもに安心感をあたえている。": ["あんしんかん", "しょくどう", "こ", "あんしんかん"], "多様→": ["たよう"], "多様化：家族の形が多様化している。": ["たようか", "かぞく", "かたち", "たようか"], "重要→": ["じゅうよう"], "重要性：地域のつながりの重要性が高まっている。": ["じゅうようせい", "ちいき", "じゅうようせい", "たか"], "高齢→": ["こうれい"], "高齢化：高齢化によって、ひとり暮らしの高齢者が増加している。": ["こうれいか", "こうれいか", "ぐ", "こうれいしゃ", "ぞうか"], "ひとり暮らしが増えている。": ["ぐ", "ふ"], "未婚化や高齢化によって、ひとり暮らしの世帯は増加しており、2050年には全体の4割以上になると言われている。": ["みこんか", "こうれいか", "ぐ", "せたい", "ぞうか", "ねん", "ぜんたい", "わりいじょう", "い"], "こども食堂がある。": ["しょくどう"], "共働きの家庭が多い中、地域の大人が運営するこども食堂は、全国で1万2千か所以上に増加した。": ["ともばたら", "かてい", "おお", "なか", "ちいき", "おとな", "うんえい", "しょくどう", "ぜんこく", "まん", "せん", "しょいじょう", "ぞうか"], "学校に行けない子どもがいる。": ["がっこう", "い", "こ"], "2024年度、学校に行けない小中学生は過去最多の35万人をこえ、約26人に1人になった。": ["ねんど", "がっこう", "い", "しょうちゅうがくせい", "かこさいた", "まんにん", "やく", "にん", "にん"], "親だけでなく、地域も子どもを支えている。": ["おや", "ちいき", "こ", "ささ"], "いっしょに住んでいるにもかかわらず、会話の少ない家族もいる。": ["す", "かいわ", "すく", "かぞく"], "いっしょに食事をすることによって、きずなが深まる。": ["しょくじ", "ふか"], "～一方（で）": ["いっぽう"], "育休をとる父親が増えた一方で、女性とのさはまだ大きい。": ["いくきゅう", "ちちおや", "ふ", "いっぽう", "じょせい", "おお"], "社会が変化するにつれて、家族の形も変わりつつある。": ["しゃかい", "へんか", "かぞく", "かたち", "か"], "ひとり暮らしだからといって、孤独だとはかぎらない。": ["ぐ", "こどく"], "育休をとる父親が増えた。女性とのさはまだ大きい。（～一方で）": ["いくきゅう", "ちちおや", "ふ", "じょせい", "おお", "いっぽう"], "こども食堂は子どもに食事をあたえる。居場所もあたえる。（～だけでなく）": ["しょくどう", "こ", "しょくじ", "いばしょ"], "こども食堂は子どもに食事だけでなく、居場所もあたえている。": ["しょくどう", "こ", "しょくじ", "いばしょ"], "ひとり暮らしの人が増えている。孤独を感じる人も増えている。（～につれて）": ["ぐ", "ひと", "ふ", "こどく", "かん", "ひと", "ふ"], "ひとり暮らしの人が増えるにつれて、孤独を感じる人も増えている。": ["ぐ", "ひと", "ふ", "こどく", "かん", "ひと", "ふ"], "家族といっしょに食事をする。きずなが深まる。（～ことによって）": ["かぞく", "しょくじ", "ふか"], "家族といっしょに食事をすることによって、きずなが深まる。": ["かぞく", "しょくじ", "ふか"], "政府は対策を進めている。孤独を感じる人はまだ多い。（～にもかかわらず）": ["せいふ", "たいさく", "すす", "こどく", "かん", "ひと", "おお"], "政府が対策を進めているにもかかわらず、孤独を感じる人はまだ多い。": ["せいふ", "たいさく", "すす", "こどく", "かん", "ひと", "おお"], "私は強くさんせいします。なぜなら、時間が大切だからだ。": ["わたし", "つよ", "じかん", "たいせつ"], "→私は強くさんせいする。なぜなら、時間が大切だからだ。": ["わたし", "つよ", "じかん", "たいせつ"], "孤独を感じる人が多いです。": ["こどく", "かん", "ひと", "おお"], "→孤独を感じる人が多い。": ["こどく", "かん", "ひと", "おお"], "子どもが居場所がない。": ["こ", "いばしょ"], "→子どもに居場所がない。（居場所のない子どもがいる。）": ["こ", "いばしょ", "いばしょ", "こ"], "育休は大切だと思う。家族も大切だと思う。子どもも大切だと思う。": ["いくきゅう", "たいせつ", "おも", "かぞく", "たいせつ", "おも", "こ", "たいせつ", "おも"], "→育休は、家族にとっても子どもにとっても欠かせない。": ["いくきゅう", "かぞく", "こ", "か"], "不登校の子どもは増えている。それは悪い。": ["ふとうこう", "こ", "ふ", "わる"], "→これは、学校に居場所がないと感じる子どもが多いことをあらわしているのかもしれない。": ["がっこう", "いばしょ", "かん", "こ", "おお"], "社会が変化するにつれて、「家族」の意味も変わりつつある。": ["しゃかい", "へんか", "かぞく", "いみ", "か"], "男性の育休取得率は約40%になった。この数字は、父親の意識が変わってきたことをあらわしている。会社も父親が育休をとりやすい制度を作っている。こうした変化によって（その結果、）父親と子どもがいっしょに過ごす時間が増えた。": ["だんせい", "いくきゅうしゅとくりつ", "やく", "すうじ", "ちちおや", "いしき", "か", "かいしゃ", "ちちおや", "いくきゅう", "せいど", "つく", "へんか", "けっか", "ちちおや", "こ", "す", "じかん", "ふ"], "「ひとり暮らしは孤独につながる」という考え方に、私はある程度さんせいする。現代の日本では、ひとり暮らしの世帯が増加しており、2050年には全体の4割以上になると言われている。たしかに、家族と話す機会が少なければ、孤独を感じやすくなるだろう。しかし、ひとり暮らしだからといって、孤独だとはかぎらない。つまり、大切なのは住み方ではなく、人とのつながりを持ち続けることなのだ。": ["ぐ", "こどく", "かんが", "かた", "わたし", "ていど", "げんだい", "にほん", "ぐ", "せたい", "ぞうか", "ねん", "ぜんたい", "わりいじょう", "い", "かぞく", "はな", "きかい", "すく", "こどく", "かん", "ぐ", "こどく", "たいせつ", "す", "かた", "ひと", "も", "つづ"], "語彙から段落へ": ["ごい", "だんらく"], "家族を作るのは、血（ち）か、時間か。": ["かぞく", "つく", "ち", "じかん"], "血": ["ち"], "時間": ["じかん"], "立ってみよう：私は（血・時間）の方が大切だと思う。なぜなら、～からだ。": ["た", "わたし", "ち", "じかん", "ほう", "たいせつ", "おも"], "居場所（いばしょ）": ["いばしょ"], "孤独・ひとり暮らし・不登校・こども食堂": ["こどく", "ぐ", "ふとうこう", "しょくどう"], "親になること": ["おや"], "男性の育休・共働き・長時間労働": ["だんせい", "いくきゅう", "ともばたら", "ちょうじかんろうどう"], "親子（おやこ）関係": ["おやこ", "かんけい"], "核家族化・親の期待・家族の形": ["かくかぞくか", "おや", "きたい", "かぞく", "かたち"], "課題増加する.": ["かだい", "ぞうか"], "～化（か）": ["か"], "少子化・高齢化・核家族化・多様化": ["しょうしか", "こうれいか", "かくかぞくか", "たようか"], "～感（かん）": ["かん"], "孤独感・安心感・責任感・一体感": ["こどくかん", "あんしんかん", "せきにんかん", "いったいかん"], "～性（せい）": ["せい"], "必要性・重要性・多様性": ["ひつようせい", "じゅうようせい", "たようせい"], "～的（てき）": ["てき"], "経済的・精神的・社会的": ["けいざいてき", "せいしんてき", "しゃかいてき"], "課題": ["かだい"], "～に向き合う": ["む", "あ"], "孤独は現代社会の大きな課題だ。": ["こどく", "げんだいしゃかい", "おお", "かだい"], "支える": ["ささ"], "子どもを～": ["こ"], "父親が育休をとる。": ["ちちおや", "いくきゅう"], "孤独を感じる人が増えているのは事実だ。": ["こどく", "かん", "ひと", "ふ", "じじつ"], "孤独を感じる人はさらに増えるだろう。": ["こどく", "かん", "ひと", "ふ"], "孤独を感じる人はさらに増えるかもしれない。": ["こどく", "かん", "ひと", "ふ"], "ひとり暮らしの人が孤独だとはかぎらない。": ["ぐ", "ひと", "こどく"], "孤独の問題が解決したとは言えない。": ["こどく", "もんだい", "かいけつ", "い"], "3「父親の役割は変わる」.": ["ちちおや", "やくわり", "か"], "「～」という考え方に、": ["かんが", "かた"], "現代の日本では、": ["げんだい", "にほん"], "こうした～で、この事から、": ["こと"], "「子どもをそだてるのは、親だけの責任ではない」—.": ["こ", "おや", "せきにん"], "男性の育休取得率は約40%になった。［男性の育休取得率］は、父親の意識が変わってきたことをあらわしている。会社も父親が育休をとりやすい制度を作っている。［会社の制度や父親の意識の変化］によって、父親と子どもがいっしょに過ごす時間が増えた。": ["だんせい", "いくきゅうしゅとくりつ", "やく", "だんせい", "いくきゅうしゅとくりつ", "ちちおや", "いしき", "か", "かいしゃ", "ちちおや", "いくきゅう", "せいど", "つく", "かいしゃ", "せいど", "ちちおや", "いしき", "へんか", "ちちおや", "こ", "す", "じかん", "ふ"], "「親は子どもの一番の友達であるべきだ。」": ["おや", "こ", "いちばん", "ともだち"], "(この・こうした・その結果)": ["けっか"], "「親子のきずなには、いっしょに過ごす時間が一番大切だ。」": ["おやこ", "す", "じかん", "いちばんたいせつ"], "「親子（おやこ）のきずなには、いっしょに過（す）ごす時間が一番大切だ」という考え方に、私は強くさんせいする。さいきん日本では、父親もこそだてにかかわるようになった。たとえば、男性の育児休業取得率（いくじきゅうぎょうしゅとくりつ）は、五年前は約12%だったが、今は約40%に増えたそうだ。父親が子どもと毎日いっしょにいれば、子どもの気持ちがよく分かるようになるだろう。このように、親子のきずなを作るのは、お金や血（ち）ではなく、いっしょに過ごす時間だと言える。": ["おやこ", "す", "じかん", "いちばんたいせつ", "かんが", "かた", "わたし", "つよ", "にほん", "ちちおや", "だんせい", "いくじきゅうぎょうしゅとくりつ", "ごねんまえ", "やく", "いま", "やく", "ふ", "ちちおや", "こ", "まいにち", "こ", "きも", "わ", "おやこ", "つく", "かね", "ち", "す", "じかん", "い"], "「～」という考え方に、私は…": ["かんが", "かた", "わたし"], "強くさんせいする。": ["つよ"], "ある程度（ていど）さんせいする。": ["ていど"], "さんせいするが、はんたいの意見もりかいできる。": ["いけん"], "「不登校は35万人だ。」": ["ふとうこう", "まんにん"], "「現代（げんだい）の子どもにとって、居場所（いばしょ）は家族と学校だけで十分だ」という意見に、私ははんたいする。たしかに、家族と学校は子どもにとって大切な場所だ。しかし、文部科学省（もんぶかがくしょう）の調査によると、学校に行けない小中学生は35万人をこえ、過去最多（かこさいた）になった。一方で、地域（ちいき）の大人が作る「こども食堂」は全国で1万2千か所以上に増えている。つまり、家族と学校のほかにも、子どもをうけ入れてくれる場所がひつようなのだ。": ["げんだい", "こ", "いばしょ", "かぞく", "がっこう", "じゅうぶん", "いけん", "わたし", "かぞく", "がっこう", "こ", "たいせつ", "ばしょ", "もんぶかがくしょう", "ちょうさ", "がっこう", "い", "しょうちゅうがくせい", "まんにん", "かこさいた", "いっぽう", "ちいき", "おとな", "つく", "しょくどう", "ぜんこく", "まん", "せん", "しょいじょう", "ふ", "かぞく", "がっこう", "こ", "い", "ばしょ"], "「日本では、人と人とのつながりがよわくなっている」という考え方に、私はある程度さんせいするが、はんたいの意見もりかいできる。たしかに、日本人の約4割が孤独（こどく）を感じているそうだ。ひとり暮（ぐ）らしの家庭もますます増え、2050年には全体の4割以上になると言われている。そのはんめん、こども食堂のように、地域で新しいつながりを作る動（うご）きも広（ひろ）がっている。したがって、つながりは「なくなっている」というより、形が変わっているのだと思う。": ["にほん", "ひと", "ひと", "かんが", "かた", "わたし", "ていど", "いけん", "にほんじん", "やく", "わり", "こどく", "かん", "ぐ", "かてい", "ふ", "ねん", "ぜんたい", "わりいじょう", "い", "しょくどう", "ちいき", "あたら", "つく", "うご", "ひろ", "かたち", "か", "おも"], "「現代の日本では、家族のつながりがよわくなっている。」": ["げんだい", "にほん", "かぞく"], "ひとり暮らしは増えている。2020年は38%だった。2050年は44%になる。ひとり暮らしは楽だと思う。": ["ぐ", "ふ", "ねん", "ねん", "ぐ", "らく", "おも"], "とはいえ、役割が「大きく」変わったとは言えないかもしれない。": ["やくわり", "おお", "か", "い"], "では、本当の「居場所」とは何だろうか。": ["ほんとう", "いばしょ", "なん"], "私の住むオーストラリアでは、～。日本とちがって、～。": ["わたし", "す", "にほん"], "長時間働く会社が変わらなければ、父親の時間は増えないだろう。": ["ちょうじかんはたら", "かいしゃ", "か", "ちちおや", "じかん", "ふ"], "私は（さんせい・はんたい）だ。たとえば、～。": ["わたし"], "増加（ぞうか）する": ["ぞうか"], "ひとり暮らしの世帯が増加している。": ["ぐ", "せたい", "ぞうか"], "減少（げんしょう）する": ["げんしょう"], "三世代で住む家族が減少している。": ["さんせだい", "す", "かぞく", "げんしょう"], "大切だ": ["たいせつ"], "欠（か）かせない": ["か"], "子どもの成長には、親の愛情が欠かせない。": ["こ", "せいちょう", "おや", "あいじょう", "か"], "問題": ["もんだい"], "課題（かだい）": ["かだい"], "変わってきた": ["か"], "変わりつつある": ["か"], "父親の役割は変わりつつある。": ["ちちおや", "やくわり", "か"], "背景（はいけい）": ["はいけい"], "不登校が増えた背景には、様々な原因がある。": ["ふとうこう", "ふ", "はいけい", "さまざま", "げんいん"], "助ける": ["たす"], "支（ささ）える": ["ささ"], "もう一度考える": ["いちどかんが"], "見直（みなお）す": ["みなお"], "家族のあり方を見直すべきだ。": ["かぞく", "かた", "みなお"], "様々（さまざま）な": ["さまざま"], "様々な家族の形がある。": ["さまざま", "かぞく", "かたち"], "一人ぼっちになる": ["ひとり"], "孤立（こりつ）する": ["こりつ"], "地域とのつながりがないと、孤立しやすい。": ["ちいき", "こりつ"], "仲がいい": ["なか"], "信頼（しんらい）関係がある": ["しんらい", "かんけい"], "親子の間に信頼関係があることが大切だ。": ["おやこ", "あいだ", "しんらいかんけい", "たいせつ"], "ひとり暮らしの人はますます増えるだろう。": ["ぐ", "ひと", "ふ"], "を深める": ["ふか"], "関係": ["かんけい"], "を築く": ["きず"], "役割": ["やくわり"], "を果たす": ["は"], "に向き合う": ["む", "あ"], "影響": ["えいきょう"], "孤独": ["こどく"], "を感じる": ["かん"], "孤独・孤立": ["こどく", "こりつ"], "約4割の人が孤独を感じている。2024年4月に法律もできた。": ["やく", "わり", "ひと", "こどく", "かん", "ねん", "がつ", "ほうりつ"], "ひとり暮らし": ["ぐ"], "2020年は全世帯の38.0%。2050年には44.3%の予測。": ["ねん", "ぜんせたい", "ねん", "よそく"], "男性の育休": ["だんせい", "いくきゅう"], "12.65%（2020年度）→40.5%（2024年度）": ["ねんど", "ねんど"], "不登校": ["ふとうこう"], "35万3,970人（2024年度）、過去最多。約26人に1人。": ["まん", "にん", "ねんど", "かこさいた", "やく", "にん", "にん"], "こども食堂": ["しょくどう"], "1万2,601か所（2025年）。毎年1,700か所以上増加。": ["まん", "しょ", "ねん", "まいとし", "しょいじょうぞうか"], "さいきん、父親が育休をとるようになった。": ["ちちおや", "いくきゅう"], "さいきん、育休をとる父親は五年前の約3倍に増加した。": ["いくきゅう", "ちちおや", "ごねんまえ", "やく", "ばい", "ぞうか"], "こそだてにかかわりたいと考える父親が増え、育休をとる父親は五年前の約3倍になった。": ["かんが", "ちちおや", "ふ", "いくきゅう", "ちちおや", "ごねんまえ", "やく", "ばい"], "「子どもをそだてるのは、親だけの責任ではない」という考え方に、私は強くさんせいする。": ["こ", "おや", "せきにん", "かんが", "かた", "わたし", "つよ"], "現代の日本では共働きの家庭が多く、親だけで子どもを支えるのはむずかしい。": ["げんだい", "にほん", "ともばたら", "かてい", "おお", "おや", "こ", "ささ"], "たとえば、地域の大人が運営する「こども食堂」は、全国で1万2千か所以上に増加している。": ["ちいき", "おとな", "うんえい", "しょくどう", "ぜんこく", "まん", "せん", "しょいじょう", "ぞうか"], "こうした場所で、子どもは家族以外の大人と信頼関係を築くことができる。": ["ばしょ", "こ", "かぞくいがい", "おとな", "しんらいかんけい", "きず"], "つまり、子どもをそだてることは、社会全体の責任だと言える。": ["こ", "しゃかいぜんたい", "せきにん", "い"], "「現代の日本では、人と人とのつながりがよわくなっている」という考え方に、私はさんせいする。": ["げんだい", "にほん", "ひと", "ひと", "かんが", "かた", "わたし"], "「現代の日本では、人と人とのつながりがよわくなっている」という考え方に、私ははんたいする。": ["げんだい", "にほん", "ひと", "ひと", "かんが", "かた", "わたし"], "地域で新しいつながりを作る動きがある。": ["ちいき", "あたら", "つく", "うご"], "調査によると、約4割の人が孤独を感じている。": ["ちょうさ", "やく", "わり", "ひと", "こどく", "かん"], "こども食堂は1万2千か所以上に増加した。": ["しょくどう", "まん", "せん", "しょいじょう", "ぞうか"], "この数字は、孤立が社会の大きな課題であることをあらわしている。": ["すうじ", "こりつ", "しゃかい", "おお", "かだい"], "こうした場所は、血のつながらない人どうしのきずなを深めている。": ["ばしょ", "ち", "ひと", "ふか"], "つまり、つながりはなくなったのではなく、形を変えているのだ。": ["かたち", "か"], "「子どもをそだてるのは、親だけの責任ではない。」": ["こ", "おや", "せきにん"], "「居場所があれば、人は孤独を感じない。」": ["いばしょ", "ひと", "こどく", "かん"], "「テクノロジーのおかげで、家族のつながりは強くなった。」": ["かぞく", "つよ"], "✓きずなを深める": ["ふか"], "✓関係を築く": ["かんけい", "きず"], "✓役割を果たす": ["やくわり", "は"], "✓課題に向き合う": ["かだい", "む", "あ"], "✓影響をあたえる": ["えいきょう"], "✓孤独を感じる": ["こどく", "かん"], "～を深める": ["ふか"], "～を築く": ["きず"], "～を果たす": ["は"], "～を感じる": ["かん"], "その結果": ["けっか"]};
+  const KRUN = /[\u4e00-\u9fff々〆ヶ]+/g;
+  function norm(t) { return String(t).replace(/[\sA-Za-z~’'“”"?:]/g, ''); }
+  function textOf(el) { const c = el.cloneNode(true); c.querySelectorAll('rt, .rbtn, .ebtn, .en').forEach(x => x.remove()); return c.textContent; }
+  // Wrap each kanji run in <ruby> with its reading. key = the element's Japanese text, or a ready list of readings.
+  function rubify(el, key) {
+    if (!el || el.querySelector('ruby')) return;
+    const list = Array.isArray(key) ? key : FURI[norm(key)];
+    if (!list) return;
+    const nodes = [];
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentElement.closest('rt, .rbtn') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+    let n, all = '';
+    while ((n = w.nextNode())) { nodes.push({ node: n, start: all.length }); all += n.nodeValue; }
+    const runs = []; let m; KRUN.lastIndex = 0;
+    while ((m = KRUN.exec(all))) runs.push([m.index, m.index + m[0].length]);
+    if (runs.length !== list.length) return;
+    const per = new Map();
+    runs.forEach((r, k) => {
+      const owner = nodes.find(x => r[0] >= x.start && r[1] <= x.start + x.node.nodeValue.length);
+      if (!owner) return;
+      if (!per.has(owner)) per.set(owner, []);
+      per.get(owner).push([r[0] - owner.start, r[1] - owner.start, list[k]]);
+    });
+    per.forEach((items, owner) => {
+      items.sort((x, y) => y[0] - x[0]).forEach(([s0, e0, rd]) => {
+        const mid = owner.node.splitText(s0); mid.splitText(e0 - s0);
+        const ruby = document.createElement('ruby');
+        mid.parentNode.insertBefore(ruby, mid); ruby.appendChild(mid);
+        const rt = document.createElement('rt'); rt.textContent = rd; ruby.appendChild(rt);
+        // a bracketed reading right after (e.g. 現代（げんだい）) duplicates the furigana: hide it while furigana is on
+        const nx = ruby.nextSibling;
+        if (nx && nx.nodeType === 3 && nx.nodeValue.startsWith('（' + rd + '）')) {
+          nx.splitText(rd.length + 2);
+          const sp = document.createElement('span'); sp.className = 'iy';
+          nx.parentNode.insertBefore(sp, nx); sp.appendChild(nx);
+        }
+      });
+    });
+  }
+  function annotate(root) {
+    root.querySelectorAll('h1, h2, h3, p, td, th, .q, .a, .s, .w, .ex, .chip, span.card, .ck').forEach(el => rubify(el, textOf(el)));
+  }
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  // Slide labels: a continuation slide shares its number with the one before (4a, 4b), so lesson-plan numbers stay the same
+  const LABELS = []; let LNUM = 0;
+  slides.forEach((s, i) => { if (s.classList.contains('cont')) { LABELS[i - 1] = LNUM + 'a'; LABELS[i] = LNUM + 'b'; } else { LNUM++; LABELS[i] = String(LNUM); } });
+  function idxOf(label) { const i = LABELS.indexOf(String(label)); return i < 0 ? LABELS.indexOf(String(label) + 'a') : i; }
+  const stage = document.getElementById('stage');
+  const vp = document.getElementById('viewport');
+  let cur = 0;
+
+  function fit() {
+    const s = Math.min(vp.clientWidth / 1600, vp.clientHeight / 900);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  function show(i, push) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => s.classList.toggle('active', k === cur));
+    document.getElementById('count').textContent = LABELS[cur] + ' / ' + LNUM;
+    document.getElementById('jump').value = String(cur);
+    if (push !== false) {
+      try { history.replaceState(null, '', '#slide-' + LABELS[cur]); } catch (e) { location.hash = 'slide-' + (cur + 1); }
+    }
+  }
+
+  // Jump menu: one entry per lesson start, plus each slide.
+  const jump = document.getElementById('jump');
+  let lastLesson = '';
+  slides.forEach((s, k) => {
+    const lesson = s.dataset.lesson || '';
+    const h = s.querySelector('h1, h2, .big');
+    const title = h ? h.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) : '';
+    if (lesson !== lastLesson) {
+      const og = document.createElement('optgroup');
+      og.label = lesson; jump.appendChild(og); lastLesson = lesson;
+    }
+    const o = document.createElement('option');
+    o.value = String(k); o.textContent = LABELS[k] + '. ' + title;
+    jump.lastChild.appendChild(o);
+  });
+  jump.addEventListener('change', () => show(parseInt(jump.value, 10)));
+  document.getElementById('prev').addEventListener('click', () => show(cur - 1));
+  document.getElementById('next').addEventListener('click', () => show(cur + 1));
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { show(cur + 1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(cur - 1); e.preventDefault(); }
+  });
+  document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => show(idxOf(b.dataset.goto))));
+
+  // Reveal Q&A lists
+  document.querySelectorAll('[data-qa]').forEach(box => {
+    let items = [];
+    try { items = JSON.parse(box.dataset.qa); } catch (e) { return; }
+    items.forEach((it, k) => {
+      const d = document.createElement('div'); d.className = 'qa-item';
+      d.innerHTML = '<span class="n">' + (k + 1) + '</span><span class="q">' + it[0] + '</span>' +
+        '<button class="btn" aria-expanded="false">Reveal</button><span class="a">' + it[1] + '</span>';
+      const b = d.querySelector('button');
+      b.addEventListener('click', () => {
+        const open = d.classList.toggle('open');
+        b.textContent = open ? 'Hide' : 'Reveal';
+        b.setAttribute('aria-expanded', String(open));
+      });
+      box.appendChild(d);
+    });
+  });
+
+  // Show/hide single items
+  document.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => {
+    const t = document.getElementById(b.dataset.show);
+    t.hidden = !t.hidden;
+    b.textContent = t.hidden ? b.textContent.replace('Hide', 'Show') : b.textContent.replace('Show', 'Hide');
+  }));
+
+  // Flip cards
+  const flips = [
+    ['ふえる', '増加（ぞうか）する', 'ひとり暮らしの世帯が増加している。'],
+    ['へる', '減少（げんしょう）する', '三世代で住む家族が減少している。'],
+    ['大切だ', '欠（か）かせない', '子どもの成長には、親の愛情が欠かせない。'],
+    ['問題', '課題（かだい）', '孤独は現代社会の大きな課題だ。'],
+    ['変わってきた', '変わりつつある', '父親の役割は変わりつつある。'],
+    ['りゆう', '背景（はいけい）', '不登校が増えた背景には、様々な原因がある。'],
+    ['助ける', '支（ささ）える', '地域の大人が子どもを支えている。'],
+    ['もう一度考える', '見直（みなお）す', '家族のあり方を見直すべきだ。'],
+    ['たくさんの', '様々（さまざま）な', '様々な家族の形がある。'],
+    ['一人ぼっちになる', '孤立（こりつ）する', '地域とのつながりがないと、孤立しやすい。'],
+    ['仲がいい', '信頼（しんらい）関係がある', '親子の間に信頼関係があることが大切だ。'],
+    ['もっと', 'さらに・ますます', 'ひとり暮らしの人はますます増えるだろう。']
+  ];
+  const fl = document.getElementById('flips'), fl2 = document.getElementById('flips2');
+  flips.forEach((f, k) => {
+    const b = document.createElement('button'); b.className = 'flip';
+    b.setAttribute('aria-label', 'Basic word ' + f[0] + '. Click to show the upgrade.');
+    b.innerHTML = '<div class="flip-inner"><div class="face front"><span class="w">' + f[0] + '</span><span class="hint">Click to upgrade</span></div>' +
+      '<div class="face back"><span class="w">' + f[1] + '</span><span class="ex">' + f[2] + '</span></div></div>';
+    b.addEventListener('click', () => b.classList.toggle('flipped'));
+    (k < Math.ceil(flips.length / 2) ? fl : fl2).appendChild(b);
+  });
+
+  // Collocation match
+  const pairs = [['きずな', 'を深める'], ['関係', 'を築く'], ['役割', 'を果たす'], ['課題', 'に向き合う'], ['影響', 'をあたえる'], ['孤独', 'を感じる']];
+  const nounsEl = document.getElementById('nouns'), verbsEl = document.getElementById('verbs'), mStat = document.getElementById('matchStatus');
+  let selNoun = null, matched = 0;
+  function buildMatch() {
+    nounsEl.innerHTML = ''; verbsEl.innerHTML = ''; selNoun = null; matched = 0; mStat.textContent = ''; mStat.className = 'status';
+    pairs.forEach((p, k) => {
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = p[0]; b.dataset.k = k;
+      b.addEventListener('click', () => {
+        if (b.classList.contains('done')) return;
+        nounsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+        b.classList.add('sel'); selNoun = b;
+      });
+      nounsEl.appendChild(b);
+    });
+    const order = pairs.map((p, k) => k).sort(() => Math.random() - .5);
+    order.forEach(k => {
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = '～' + pairs[k][1]; b.dataset.k = k;
+      b.addEventListener('click', () => {
+        if (b.classList.contains('done')) return;
+        if (!selNoun) { mStat.textContent = 'Choose a noun first.'; mStat.className = 'status no'; return; }
+        if (selNoun.dataset.k === b.dataset.k) {
+          selNoun.classList.remove('sel'); selNoun.classList.add('done'); b.classList.add('done');
+          selNoun.textContent = '✓ ' + pairs[k][0] + pairs[k][1];
+          rubify(selNoun, selNoun.textContent);
+          gloss(selNoun);
+          matched++; selNoun = null;
+          mStat.textContent = matched === pairs.length ? 'All six matched. Now use three in your own sentences.' : 'Correct!';
+          mStat.className = 'status ok';
+        } else {
+          b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong');
+          mStat.textContent = 'Not that one — try again.'; mStat.className = 'status no';
+        }
+      });
+      verbsEl.appendChild(b);
+    });
+    annotate(document.getElementById('match'));
+  }
+  buildMatch();
+  document.getElementById('matchReset').addEventListener('click', buildMatch);
+
+  // Facts
+  const facts = [
+    ['孤独・孤立', '約4割の人が孤独を感じている。2024年4月に法律もできた。', 'About 4 in 10 feel lonely'],
+    ['ひとり暮らし', '2020年は全世帯の38.0%。2050年には44.3%の予測。', 'Single households rising'],
+    ['男性の育休', '12.65%（2020年度）→ 40.5%（2024年度）', 'Fathers on leave more than tripled'],
+    ['不登校', '35万3,970人（2024年度）、過去最多。約26人に1人。', 'Record school absence'],
+    ['こども食堂', '1万2,601か所（2025年）。毎年1,700か所以上増加。', 'Children’s cafeterias growing']
+  ];
+  const fe = document.getElementById('facts');
+  facts.forEach(f => {
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = '<h3>' + f[0] + '</h3><button class="btn">Show fact</button><p class="small" hidden>' + f[1] + '</p><p class="note" hidden>' + f[2] + '</p>';
+    const b = c.querySelector('button'), ps = c.querySelectorAll('p');
+    b.addEventListener('click', () => { const h = !ps[0].hidden; ps.forEach(p => p.hidden = h); b.textContent = h ? 'Show fact' : 'Hide fact'; });
+    fe.appendChild(c);
+  });
+
+  // Expand
+  const expand = [
+    ['父親が育休をとる。', 'Start bare. Each click adds one layer.'],
+    ['さいきん、父親が育休をとるようになった。', '+ when: さいきん・～ようになった'],
+    ['さいきん、育休をとる父親は五年前の約3倍に増加した。', '+ how much: a figure makes it specific'],
+    ['こそだてにかかわりたいと考える父親が増え、育休をとる父親は五年前の約3倍になった。', '+ why: the cause makes it an argument']
+  ];
+  document.querySelectorAll('[data-expand]').forEach(b => b.addEventListener('click', () => {
+    const e = expand[parseInt(b.dataset.expand, 10)];
+    document.getElementById('expandOut').textContent = e[0];
+    rubify(document.getElementById('expandOut'), e[0]);
+    document.getElementById('expandNote').textContent = e[1];
+  }));
+
+  // Ladder
+  document.querySelectorAll('.rung').forEach(r => r.addEventListener('click', () => r.classList.toggle('on')));
+
+  // Order game
+  const sentences = [
+    ['b', 'Stance', '「子どもをそだてるのは、親だけの責任ではない」という考え方に、私は強くさんせいする。'],
+    ['e', 'Context', '現代の日本では共働きの家庭が多く、親だけで子どもを支えるのはむずかしい。'],
+    ['d', 'Evidence', 'たとえば、地域の大人が運営する「こども食堂」は、全国で1万2千か所以上に増加している。'],
+    ['c', 'Meaning', 'こうした場所で、子どもは家族以外の大人と信頼関係を築くことができる。'],
+    ['a', 'Link', 'つまり、子どもをそだてることは、社会全体の責任だと言える。']
+  ];
+  const pool = document.getElementById('pool'), built = document.getElementById('built'), oStat = document.getElementById('orderStatus');
+  let chosen = [];
+  function buildOrder() {
+    pool.innerHTML = ''; built.innerHTML = ''; chosen = []; oStat.textContent = ''; oStat.className = 'status';
+    ['a', 'b', 'c', 'd', 'e'].forEach(letter => {
+      const s = sentences.find(x => x[0] === letter);
+      const b = document.createElement('button'); b.className = 'sent';
+      b.textContent = '(' + s[0] + ') ' + s[2];
+      rubify(b, FURI[norm(s[2])] || []);
+      b.addEventListener('click', () => {
+        if (b.classList.contains('used')) return;
+        b.classList.add('used'); chosen.push(s);
+        const c = document.createElement('div'); c.className = 'sent';
+        c.innerHTML = '<span class="job">' + chosen.length + '</span>' + s[2];
+        rubify(c, FURI[norm(s[2])] || []);
+        built.appendChild(c);
+      });
+      pool.appendChild(b);
+    });
+  }
+  buildOrder();
+  document.getElementById('orderReset').addEventListener('click', buildOrder);
+  document.getElementById('orderCheck').addEventListener('click', () => {
+    if (chosen.length < 5) { oStat.textContent = 'Place all five sentences first.'; oStat.className = 'status no'; return; }
+    let right = 0;
+    Array.from(built.children).forEach((c, k) => {
+      const ok = chosen[k] === sentences[k];
+      if (ok) right++;
+      c.classList.toggle('good', ok); c.classList.toggle('bad', !ok);
+      c.querySelector('.job').textContent = (k + 1) + ' · ' + (ok ? '✓ ' + sentences[k][1] : '✗ should be ' + sentences[k][1]);
+    });
+    oStat.textContent = right === 5 ? 'All in order: b → e → d → c → a' : right + ' of 5 in the right place.';
+    oStat.className = 'status ' + (right === 5 ? 'ok' : 'no');
+  });
+
+  // Builder
+  const bank = [
+    ['Stance', '「現代の日本では、人と人とのつながりがよわくなっている」という考え方に、私はさんせいする。', '「現代の日本では、人と人とのつながりがよわくなっている」という考え方に、私ははんたいする。'],
+    ['Context', 'ひとり暮らしの世帯が増加している。', '地域で新しいつながりを作る動きがある。'],
+    ['Evidence', '調査によると、約4割の人が孤独を感じている。', 'こども食堂は1万2千か所以上に増加した。'],
+    ['Meaning', 'この数字は、孤立が社会の大きな課題であることをあらわしている。', 'こうした場所は、血のつながらない人どうしのきずなを深めている。'],
+    ['Link', 'つまり、つながりはよわくなっているのだ。', 'つまり、つながりはなくなったのではなく、形を変えているのだ。']
+  ];
+  const picks = [null, null, null, null, null];
+  const bEl = document.getElementById('builder'), bOut = document.getElementById('builderOut'), bStat = document.getElementById('builderStatus');
+  bank.forEach((row, r) => {
+    const d = document.createElement('div'); d.className = 'brow';
+    d.innerHTML = '<span class="lab">' + row[0] + '</span>';
+    [1, 2].forEach(k => {
+      const b = document.createElement('button'); b.className = 'opt';
+      b.textContent = (k === 1 ? '① ' : '② ') + row[k];
+      rubify(b, FURI[norm(row[k])] || []);
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => {
+        picks[r] = k;
+        d.querySelectorAll('.opt').forEach(o => { o.classList.remove('on'); o.setAttribute('aria-pressed', 'false'); });
+        b.classList.add('on'); b.setAttribute('aria-pressed', 'true');
+        renderBuilder();
+      });
+      d.appendChild(b);
+    });
+    bEl.appendChild(d);
+  });
+  function renderBuilder() {
+    const parts = picks.map((p, r) => p ? bank[r][p] : '');
+    const text = parts.filter(Boolean).join('');
+    bOut.innerHTML = text ? text : '<span class="muted">Choose one sentence for each job. Your paragraph appears here.</span>';
+    if (text) rubify(bOut, [].concat(...picks.map((p, r) => p ? (FURI[norm(bank[r][p])] || []) : [])));
+    if (picks[0] && picks[4]) {
+      if (picks[0] !== picks[4]) { bStat.textContent = 'Careful: your stance and link disagree. Which one do you really mean?'; bStat.className = 'status no'; }
+      else if (picks.every(p => p === picks[0])) { bStat.textContent = 'Consistent: every sentence supports the same position.'; bStat.className = 'status ok'; }
+      else { bStat.textContent = 'Stance and link agree. Does every middle sentence support them?'; bStat.className = 'status ok'; }
+    } else { bStat.textContent = ''; }
+  }
+
+  // Checklists
+  document.querySelectorAll('.ck').forEach(c => {
+    c.setAttribute('aria-pressed', 'false');
+    c.addEventListener('click', () => {
+      const on = c.classList.toggle('on');
+      c.querySelector('.box').textContent = on ? '✓' : '';
+      c.setAttribute('aria-pressed', String(on));
+    });
+  });
+
+  // Label toggle
+  const lt = document.getElementById('labelToggle');
+  lt.addEventListener('click', () => {
+    const on = document.getElementById('m1').classList.toggle('show-labels');
+    lt.textContent = on ? 'Hide labels' : 'Show labels';
+    lt.setAttribute('aria-pressed', String(on));
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    const wrap = t.closest('.slide');
+    wrap.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected', 'false'); });
+    wrap.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    t.classList.add('on'); t.setAttribute('aria-selected', 'true');
+    document.getElementById(t.dataset.tab).classList.add('on');
+  }));
+
+  // Quick-fire
+  const qs = ['「親は子どもの一番の友達であるべきだ。」', '「子どもをそだてるのは、親だけの責任ではない。」', '「居場所があれば、人は孤独を感じない。」', '「テクノロジーのおかげで、家族のつながりは強くなった。」'];
+  const qEl = document.getElementById('quick'); let qi = 0;
+  function addQ() {
+    if (qi >= qs.length) return;
+    const d = document.createElement('div'); d.className = 'qa-item'; d.style.background = '#2C3A5A';
+    d.innerHTML = '<span class="n" style="color:var(--accent-soft);">' + (qi + 1) + '</span><span class="q" style="color:var(--paper);">' + qs[qi] + '</span>';
+    rubify(d.querySelector('.q'), qs[qi]);
+    qEl.appendChild(d); qi++;
+  }
+  document.getElementById('quickNext').addEventListener('click', addQ);
+  document.getElementById('quickReset').addEventListener('click', () => { qEl.innerHTML = ''; qi = 0; });
+
+  // Timer
+  let total = 300, left = 300, tick = null;
+  const tEl = document.getElementById('timer'), go = document.getElementById('timerGo'), tLab = document.getElementById('timerLabel');
+  function draw() { const m = Math.floor(left / 60), s = left % 60; tEl.textContent = m + ':' + String(s).padStart(2, '0'); }
+  function stop() { clearInterval(tick); tick = null; go.textContent = 'Start'; }
+  document.querySelectorAll('[data-time]').forEach(b => b.addEventListener('click', () => {
+    stop(); total = left = parseInt(b.dataset.time, 10); draw();
+    tLab.textContent = total === 300 ? 'Plan: keywords · stance · one fact · what it shows · link' : 'Write 150–200字. Leave 2 minutes to check.';
+  }));
+  go.addEventListener('click', () => {
+    if (tick) { stop(); return; }
+    go.textContent = 'Pause';
+    tick = setInterval(() => { left--; draw(); if (left <= 0) { stop(); tEl.textContent = '0:00'; tLab.textContent = 'Time — pens down.'; } }, 1000);
+  });
+  document.getElementById('timerReset').addEventListener('click', () => { stop(); left = total; draw(); });
+
+  // Furigana: annotate everything, one switch per slide, plus a switch for all slides
+  annotate(document.getElementById('stage'));
+  const allBtn = document.getElementById('furiAll');
+  function syncAll() {
+    const on = slides.every(sl => sl.classList.contains('furi'));
+    allBtn.textContent = on ? 'Furigana: all on' : 'Furigana: all off';
+    allBtn.setAttribute('aria-pressed', String(on));
+  }
+  function setSlide(sl, on) {
+    sl.classList.toggle('furi', on);
+    const b = sl.querySelector('.rbtn');
+    b.textContent = on ? 'ふりがな ON' : 'ふりがな OFF';
+    b.setAttribute('aria-pressed', String(on));
+  }
+  slides.forEach(sl => {
+    const b = document.createElement('button'); b.className = 'rbtn';
+    b.setAttribute('aria-label', 'Show furigana on this slide');
+    b.addEventListener('click', () => { setSlide(sl, !sl.classList.contains('furi')); syncAll(); });
+    sl.appendChild(b); setSlide(sl, false);
+  });
+  allBtn.addEventListener('click', () => {
+    const on = !slides.every(sl => sl.classList.contains('furi'));
+    slides.forEach(sl => setSlide(sl, on)); syncAll();
+  });
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'f' || e.key === 'F') { const sl = slides[cur]; setSlide(sl, !sl.classList.contains('furi')); syncAll(); }
+  });
+
+
+
+  // English glosses for vocabulary: one switch on each vocabulary slide, one for all
+  const EN = {"ふえる": "to increase", "増加する": "to increase (formal)", "へる": "to decrease", "減少する": "to decrease (formal)", "大切だ": "important", "欠かせない": "indispensable", "問題": "problem", "課題": "issue, challenge", "変わってきた": "has changed", "変わりつつある": "is (gradually) changing", "りゆう": "reason", "背景": "background, underlying cause", "助ける": "to help", "支える": "to support", "もう一度考える": "to think again", "見直す": "to reconsider, rethink", "たくさんの": "many", "様々な": "various", "一人ぼっちになる": "to end up all alone", "孤立する": "to become isolated", "仲がいい": "to get on well", "信頼関係がある": "to have a relationship of trust", "もっと": "more", "さらに・ますます": "further / more and more", "きずな": "bond", "関係": "relationship", "役割": "role", "影響": "influence", "孤独": "loneliness", "～を深める": "to deepen", "～を築く": "to build", "～を果たす": "to fulfil", "～に向き合う": "to face, confront", "～をあたえる": "to give / have (an effect)", "～を感じる": "to feel", "✓きずなを深める": "to deepen a bond", "✓関係を築く": "to build a relationship", "✓役割を果たす": "to fulfil a role", "✓課題に向き合う": "to face a challenge", "✓影響をあたえる": "to have an influence", "✓孤独を感じる": "to feel lonely", "少子化・高齢化・核家族化・多様化": "falling birthrate · ageing society · shift to nuclear families · diversification", "孤独感・安心感・責任感・一体感": "loneliness · sense of security · sense of responsibility · sense of unity", "必要性・重要性・多様性": "necessity · importance · diversity", "経済的・精神的・社会的": "economic · mental, emotional · social", "孤独・ひとり暮らし・不登校・こども食堂": "loneliness · living alone · school non-attendance · children’s cafeterias", "男性の育休・共働き・長時間労働": "fathers’ parental leave · dual-income families · long working hours", "核家族化・親の期待・家族の形": "shift to nuclear families · parents’ expectations · shapes of family", "孤独・孤立": "loneliness and isolation", "ひとり暮らし": "living alone", "男性の育休": "fathers’ parental leave", "不登校": "school non-attendance", "こども食堂": "children’s cafeterias"};
+  function enKey(t) { return String(t).replace(/（[ぁ-ん]+）/g, '').replace(/[\sA-Za-z~’'“”"?:]/g, ''); }
+  function enText(el) { const c = el.cloneNode(true); c.querySelectorAll('rt, .rbtn, .ebtn, .en, .tag, .iy').forEach(x => x.remove()); return c.textContent; }
+  function gloss(el, k) {
+    if (!el) return;
+    const old = el.querySelector(':scope > .en'); if (old) old.remove();
+    const g = EN[enKey(k === undefined ? enText(el) : k)]; if (!g) return;
+    const sp = document.createElement('span'); sp.className = 'en'; sp.textContent = g; el.appendChild(sp);
+  }
+  function glossAll(root) { root.querySelectorAll('.w, .chip, h3, p.small, .j.h3, .j.small').forEach(el => { if (!el.querySelector(':scope > .en')) gloss(el); }); }
+  glossAll(document.getElementById('stage'));
+  new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) { if (n.matches && n.matches('.chip')) gloss(n); else if (n.querySelectorAll) glossAll(n); } })))
+    .observe(document.getElementById('stage'), { childList: true, subtree: true });
+  const enAll = document.getElementById('enAll');
+  const enSlides = () => slides.filter(sl => sl.querySelector('.en'));
+  function enSync() { const list = enSlides(); const on = list.length && list.every(sl => sl.classList.contains('en-on')); enAll.textContent = on ? 'English: all on' : 'English: all off'; enAll.setAttribute('aria-pressed', String(!!on)); }
+  function enSet(sl, on) { sl.classList.toggle('en-on', on); const b = sl.querySelector('.ebtn'); if (b) { b.textContent = on ? 'English ON' : 'English OFF'; b.setAttribute('aria-pressed', String(on)); } }
+  slides.forEach(sl => {
+    if (!sl.querySelector('.en')) return;
+    const b = document.createElement('button'); b.className = 'ebtn'; b.setAttribute('aria-label', 'Show English meanings on this slide');
+    b.addEventListener('click', () => { enSet(sl, !sl.classList.contains('en-on')); enSync(); });
+    sl.appendChild(b); enSet(sl, false);
+  });
+  enAll.addEventListener('click', () => { const list = enSlides(); const on = !list.every(sl => sl.classList.contains('en-on')); list.forEach(sl => enSet(sl, on)); enSync(); });
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'select' || tag === 'input') return;
+    if (e.key === 'e' || e.key === 'E') { const sl = slides[cur]; if (sl.querySelector('.ebtn')) { enSet(sl, !sl.classList.contains('en-on')); enSync(); } }
+  });
+  (function () {
+    const fb = document.getElementById('fullBtn');
+    if (!fb) return;
+    fb.addEventListener('click', () => {
+      try {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else { const p = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => { fb.textContent = 'Full screen not available here'; }); }
+      } catch (e) { fb.textContent = 'Full screen not available here'; }
+    });
+    document.addEventListener('fullscreenchange', () => { fb.textContent = document.fullscreenElement ? '⛶ Exit full screen' : '⛶ Full screen'; setTimeout(() => window.dispatchEvent(new Event('resize')), 50); });
+  })();
+  // Start
+  fit();
+  const m = /^#slide-(\d+[ab]?)$/.exec(location.hash);
+  show(m && idxOf(m[1]) >= 0 ? idxOf(m[1]) : 0, false);
+  window.addEventListener('hashchange', () => { const h = /^#slide-(\d+[ab]?)$/.exec(location.hash); if (h && idxOf(h[1]) >= 0) show(idxOf(h[1]), false); });
+})();
+</script>
+</body>
+</html>
